@@ -1,0 +1,11 @@
+{
+    "version": 10,
+    "configurePresets": [
+        {
+            "name": "default",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "/usr/include/x86_64-linux-gnu/qt6/"
+            }
+        }
+    ]
+}

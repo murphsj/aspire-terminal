@@ -1,0 +1,44 @@
+[
+{
+  "directory": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/include -isystem /usr/include/x86_64-linux-gnu/qt6/QtCore -isystem /usr/include/x86_64-linux-gnu/qt6 -isystem /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -isystem /usr/include/x86_64-linux-gnu/qt6/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt6/QtGui -g -std=gnu++17 -fPIC -o CMakeFiles/aspireTerminalPrototype.dir/aspireTerminalPrototype_autogen/mocs_compilation.cpp.o -c /home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/mocs_compilation.cpp",
+  "file": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/mocs_compilation.cpp",
+  "output": "CMakeFiles/aspireTerminalPrototype.dir/aspireTerminalPrototype_autogen/mocs_compilation.cpp.o"
+},
+{
+  "directory": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/include -isystem /usr/include/x86_64-linux-gnu/qt6/QtCore -isystem /usr/include/x86_64-linux-gnu/qt6 -isystem /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -isystem /usr/include/x86_64-linux-gnu/qt6/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt6/QtGui -g -std=gnu++17 -fPIC -o CMakeFiles/aspireTerminalPrototype.dir/main.cpp.o -c /home/murphsj/aspire/qt-test/aspireTerminalPrototype/main.cpp",
+  "file": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/main.cpp",
+  "output": "CMakeFiles/aspireTerminalPrototype.dir/main.cpp.o"
+},
+{
+  "directory": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/include -isystem /usr/include/x86_64-linux-gnu/qt6/QtCore -isystem /usr/include/x86_64-linux-gnu/qt6 -isystem /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -isystem /usr/include/x86_64-linux-gnu/qt6/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt6/QtGui -g -std=gnu++17 -fPIC -o CMakeFiles/aspireTerminalPrototype.dir/src/EscapeSequence.cpp.o -c /home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/EscapeSequence.cpp",
+  "file": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/EscapeSequence.cpp",
+  "output": "CMakeFiles/aspireTerminalPrototype.dir/src/EscapeSequence.cpp.o"
+},
+{
+  "directory": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/include -isystem /usr/include/x86_64-linux-gnu/qt6/QtCore -isystem /usr/include/x86_64-linux-gnu/qt6 -isystem /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -isystem /usr/include/x86_64-linux-gnu/qt6/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt6/QtGui -g -std=gnu++17 -fPIC -o CMakeFiles/aspireTerminalPrototype.dir/src/Pty.cpp.o -c /home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/Pty.cpp",
+  "file": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/Pty.cpp",
+  "output": "CMakeFiles/aspireTerminalPrototype.dir/src/Pty.cpp.o"
+},
+{
+  "directory": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/include -isystem /usr/include/x86_64-linux-gnu/qt6/QtCore -isystem /usr/include/x86_64-linux-gnu/qt6 -isystem /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -isystem /usr/include/x86_64-linux-gnu/qt6/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt6/QtGui -g -std=gnu++17 -fPIC -o CMakeFiles/aspireTerminalPrototype.dir/src/TerminalCharacter.cpp.o -c /home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/TerminalCharacter.cpp",
+  "file": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/TerminalCharacter.cpp",
+  "output": "CMakeFiles/aspireTerminalPrototype.dir/src/TerminalCharacter.cpp.o"
+},
+{
+  "directory": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/include -isystem /usr/include/x86_64-linux-gnu/qt6/QtCore -isystem /usr/include/x86_64-linux-gnu/qt6 -isystem /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -isystem /usr/include/x86_64-linux-gnu/qt6/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt6/QtGui -g -std=gnu++17 -fPIC -o CMakeFiles/aspireTerminalPrototype.dir/src/TerminalWidget.cpp.o -c /home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/TerminalWidget.cpp",
+  "file": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/TerminalWidget.cpp",
+  "output": "CMakeFiles/aspireTerminalPrototype.dir/src/TerminalWidget.cpp.o"
+},
+{
+  "directory": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/aspireTerminalPrototype_autogen/include -isystem /usr/include/x86_64-linux-gnu/qt6/QtCore -isystem /usr/include/x86_64-linux-gnu/qt6 -isystem /usr/lib/x86_64-linux-gnu/qt6/mkspecs/linux-g++ -isystem /usr/include/x86_64-linux-gnu/qt6/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt6/QtGui -g -std=gnu++17 -fPIC -o CMakeFiles/aspireTerminalPrototype.dir/src/TextBuffer.cpp.o -c /home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/TextBuffer.cpp",
+  "file": "/home/murphsj/aspire/qt-test/aspireTerminalPrototype/src/TextBuffer.cpp",
+  "output": "CMakeFiles/aspireTerminalPrototype.dir/src/TextBuffer.cpp.o"
+}
+]
