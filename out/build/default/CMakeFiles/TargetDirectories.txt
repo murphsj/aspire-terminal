@@ -1,5 +1,0 @@
-/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/CMakeFiles/aspireTerminalPrototype.dir
-/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/CMakeFiles/edit_cache.dir
-/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/CMakeFiles/rebuild_cache.dir
-/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/CMakeFiles/aspireTerminalPrototype_autogen_timestamp_deps.dir
-/home/murphsj/aspire/qt-test/aspireTerminalPrototype/out/build/default/CMakeFiles/aspireTerminalPrototype_autogen.dir
