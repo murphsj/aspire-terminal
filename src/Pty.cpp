@@ -138,7 +138,7 @@ int Pty::send(const char* sequence, std::size_t length)
 std::string_view Pty::recieve()
 {
     char readBuffer[READ_BUFFER_SIZE];
-    ssize_t len = {read(m_fileDescriptor, readBuffer, READ_BUFFER_SIZE)};
+    ssize_t len {read(m_fileDescriptor, readBuffer, READ_BUFFER_SIZE)};
     return std::string_view(readBuffer, len);
 }
 

@@ -1,4 +1,5 @@
 #include "TerminalWidget.h"
+#include "EscapeSequence.h"
 #include "TerminalCharacter.h"
 
 #include <QPainter>
@@ -64,9 +65,10 @@ void TerminalWidget::paintCharacter(QPainter& painter, QRect& region, TerminalCh
 
 void TerminalWidget::recievedFdData(std::string_view output)
 {
-    for (int i {0}; i < output.length(); ++i) {
-        ssize_t parsedLength { parse(output, i) };
-        i += parsedLength;
+    ssize_t i {0};
+    while (i < output.length()) {
+        ssize_t newIndex {parse(output, i)};
+        i = newIndex;
     }
 
     update();
@@ -78,21 +80,20 @@ ssize_t TerminalWidget::parse(std::string_view output, ssize_t index)
 
     const char& ch = output.at(index);
     if (ch == ESC) {
-        return parseEscapeSequence(output, index);
+        return parseEscapeSequence(output, ++index);
     } else {
-        return parseCharacter(output, ch);
+        return parseCharacter(output, index);
     }
 }
 
 ssize_t TerminalWidget::parseEscapeSequence(std::string_view seq, ssize_t index)
 {
-    if (++index == seq.size()) return 0;
-    const char& designator = seq.at(index);
-    
+    EscapeSequence escSequence {};
+    return escSequence.parse(seq, index);
 }
 
 ssize_t TerminalWidget::parseCharacter(std::string_view seq, ssize_t index)
 {
     m_buffer.write(TerminalCharacter{ seq.at(index) });
-    return 1;
+    return ++index;
 }

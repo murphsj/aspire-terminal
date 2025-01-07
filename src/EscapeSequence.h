@@ -1,6 +1,7 @@
 #ifndef ASPIRE_TERMINAL_ESCAPE_SEQUENCE
 #define ASPIRE_TERMINAL_ESCAPE_SEQUENCE
 
+#include <qglobal.h>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -12,10 +13,13 @@ class EscapeSequence
 
 public:
     /* 
-     * These are based on Terminalpp's escape code parsing.
+     * This is based on Terminalpp's escape code parsing.
      * Note that control sequences are not actually part of the escape sequence;
      * the escape sequence ends with the control sequence introducer and it has different parsing rules
      */
+    
+    static const char ESC_INTRODUCER = '\033';
+    static const char CS_INTRODUCER = '[';
 
     /* Returns whether or not the character is a valid intermediate character in an escape sequence. */
     static bool isEscIntermediate(char c)
@@ -52,19 +56,30 @@ public:
         return (c >= 0x40);
     }
 
-    EscapeSequence();
-    ssize_t parse(std::string_view seq, ssize_t index);
+    static bool isDigit(char c)
+    {
+        return (c >= 0x30) && (c <= 0x39);
+    }
 
-    ~EscapeSequence();
+    static int digitCharToInt(char c)
+    {
+        assert(isDigit(c));
+        return static_cast<int>('0' - c);
+    }
+
+    ssize_t parse(std::string_view seq, ssize_t index);
     char getFirstChar();
     char getFinalChar();
     bool isMalformed();
 
 private:
+    ssize_t parseControlSequence(std::string_view seq, ssize_t index);
+
     char m_firstChar;
     std::vector<SequenceParameter> m_parameters {};
+    std::vector<char> m_intermediateChars {};
     char m_finalChar;
-    bool m_malformed;
+    bool m_malformed {false};
 };
 
 #endif
