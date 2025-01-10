@@ -9,14 +9,21 @@
 
 class EscapeSequence
 {
-    typedef std::variant<std::string, int> SequenceParameter;
-
-public:
     /* 
      * This is based on Terminalpp's escape code parsing.
-     * Note that control sequences are not actually part of the escape sequence;
+     * Note that control sequences and operating system control sequences are not actually part of the escape sequence;
      * the escape sequence ends with the control sequence introducer and it has different parsing rules
      */
+
+public:
+    enum SequenceType {
+        ESC = 0x0,
+        CSI = 0x1,
+        OSC = 0x2
+    };
+
+    typedef std::variant<const char*, int> SequenceParameter;
+    
     
     static const char ESC_INTRODUCER = '\033';
     static const char CS_INTRODUCER = '[';
@@ -64,22 +71,28 @@ public:
     static int digitCharToInt(char c)
     {
         assert(isDigit(c));
-        return static_cast<int>('0' - c);
+        return static_cast<int>(c - '0');
     }
 
-    ssize_t parse(std::string_view seq, ssize_t index);
-    char getFirstChar();
-    char getFinalChar();
-    bool isMalformed();
+    /**
+      * Reads an escape sequence at the given index of the given string to this object 
+      * Precondition: seq.at(index-1) is an escape sequence introducer character
+      */
+    ssize_t read(std::string_view seq, ssize_t index);
+    SequenceType getSequenceType() { return m_sequenceType; }
+    char getFinalChar() { return m_finalChar; }
+    /** Returns if the sequence should be ignored, either because it is not supported or because it is malformed */
+    bool isInvalid() { return m_invalid; }
+    void debugInfo();
 
 private:
-    ssize_t parseControlSequence(std::string_view seq, ssize_t index);
+    ssize_t readControlSequence(std::string_view seq, ssize_t index);
 
-    char m_firstChar;
+    SequenceType m_sequenceType {SequenceType::ESC};
     std::vector<SequenceParameter> m_parameters {};
     std::vector<char> m_intermediateChars {};
     char m_finalChar;
-    bool m_malformed {false};
+    bool m_invalid {false};
 };
 
 #endif

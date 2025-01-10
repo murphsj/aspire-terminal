@@ -7,6 +7,7 @@
 #include <qtmetamacros.h>
 #include <qwidget.h>
 
+#include "EscapeSequence.h"
 #include "Pty.h"
 #include "TextBuffer.h"
 
@@ -36,6 +37,8 @@ private:
     ssize_t parse(std::string_view output, ssize_t index);
     ssize_t parseEscapeSequence(std::string_view output, ssize_t index);
     ssize_t parseCharacter(std::string_view output, ssize_t index);
+    void applyEscapeSequence(EscapeSequence esc);
+    void applyControlSequence(EscapeSequence cs);
     QFont m_font;
     QFontMetrics m_fontMetrics;
     TextBuffer m_buffer;

@@ -86,14 +86,42 @@ ssize_t TerminalWidget::parse(std::string_view output, ssize_t index)
     }
 }
 
-ssize_t TerminalWidget::parseEscapeSequence(std::string_view seq, ssize_t index)
-{
-    EscapeSequence escSequence {};
-    return escSequence.parse(seq, index);
-}
-
 ssize_t TerminalWidget::parseCharacter(std::string_view seq, ssize_t index)
 {
     m_buffer.write(TerminalCharacter{ seq.at(index) });
     return ++index;
+}
+
+ssize_t TerminalWidget::parseEscapeSequence(std::string_view seq, ssize_t index)
+{
+    EscapeSequence escSequence {};
+    ssize_t newIndex {escSequence.read(seq, index)};
+    
+    // If this is a valid escape sequence, carry out what it's asking us to do
+    if (!escSequence.isInvalid()) {
+        switch (escSequence.getSequenceType()) {
+        case EscapeSequence::SequenceType::ESC:
+            applyEscapeSequence(escSequence);
+            break;
+        case EscapeSequence::SequenceType::CSI:
+            applyControlSequence(escSequence);
+            break;
+        case EscapeSequence::SequenceType::OSC:
+            break;
+        }
+    }
+
+    escSequence.debugInfo();
+
+    return newIndex;
+}
+
+void TerminalWidget::applyControlSequence(EscapeSequence cs)
+{
+
+}
+
+void TerminalWidget::applyEscapeSequence(EscapeSequence cs)
+{
+    
 }

@@ -1,8 +1,9 @@
 #include <qdebug.h>
+#include <variant>
 
 #include "EscapeSequence.h"
 
-ssize_t EscapeSequence::parse(std::string_view seq, ssize_t index)
+ssize_t EscapeSequence::read(std::string_view seq, ssize_t index)
 {
     char c;
     while (index < seq.size()) {
@@ -18,7 +19,7 @@ ssize_t EscapeSequence::parse(std::string_view seq, ssize_t index)
             m_intermediateChars.push_back(c);
         } else {
             qDebug() << "Parsed malformed ESC sequence: invalid intermediate character " << c;
-            m_malformed = true;
+            m_invalid = true;
             return ++index;
         }
     }
@@ -26,17 +27,17 @@ ssize_t EscapeSequence::parse(std::string_view seq, ssize_t index)
     if (c == CS_INTRODUCER) {
         if (!m_intermediateChars.empty()) {
             qDebug() << "Parsed malformed ESC sequence: CSI with intermediate arguments";
-            m_malformed = true;
+            m_invalid = true;
             return ++index;
         }
-        return parseControlSequence(seq, index);
+        return readControlSequence(seq, index);
     }
 
     m_finalChar = c;
     return index;
 }
 
-ssize_t EscapeSequence::parseControlSequence(std::string_view seq, ssize_t index)
+ssize_t EscapeSequence::readControlSequence(std::string_view seq, ssize_t index)
 {
     // Control sequence starts with an optional list of parameters separated by ;
     while (index < seq.size()) {
@@ -54,32 +55,45 @@ ssize_t EscapeSequence::parseControlSequence(std::string_view seq, ssize_t index
                 numericParameter += digitCharToInt(c);
                 ++index;
                 c = seq.at(index);
-            } 
+            }
+            m_parameters.push_back(numericParameter);
             // If there's a semicolon at the end, skip it
             if (c == ';') {
                 ++index;
             }
         } else {
             // This is a string parameter; we don't support any control sequences that take strings so it's invalid
-            m_malformed = true;
+            m_invalid = true;
             ++index;
         }
     }
     // Parameter list is followed by optional sequence of intermediate characters
     while (index < seq.size()) {
         char c = seq.at(index);
-        if (isCsIntermediate(c)) break;
+        if (!isCsIntermediate(c)) break;
         m_intermediateChars.push_back(c);
         index++;
     }
 
     if (index >= seq.size() && !isCsFinal(seq.at(index))) {
-        m_malformed = true;
+        m_invalid = true;
         qDebug() << "Parsed malformed control sequence: ended without terminating character";
     } else {
         m_finalChar = seq.at(index);
     }
 
-    return index;
+    m_sequenceType = SequenceType::CSI;
+
+    return ++index;
+}
+
+void EscapeSequence::debugInfo()
+{
+    qDebug() << "Parameters:";
+    for (SequenceParameter param : m_parameters) {
+        qDebug() << "param";
+        std::visit([](auto&& p) {qDebug() << p;}, param);
+    }
+    qDebug() << "Final char:" << m_finalChar;
 }
 
