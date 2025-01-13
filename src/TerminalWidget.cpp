@@ -118,7 +118,16 @@ ssize_t TerminalWidget::parseEscapeSequence(std::string_view seq, ssize_t index)
 
 void TerminalWidget::applyControlSequence(EscapeSequence cs)
 {
-
+    switch (cs.getFinalChar())
+    {
+    case 'm':
+        for (EscapeSequence::SequenceParameter param : cs.getParameters()) {
+            if (const int* value = std::get_if<int>(&param)) {
+                
+            }
+        }
+        break;
+    }
 }
 
 void TerminalWidget::applyEscapeSequence(EscapeSequence cs)

@@ -86,15 +86,34 @@ void TextBuffer::write(TerminalCharacter c)
     }
     m_characterData[m_cursorY][m_cursorX] = c;
 
+    c.attributes = m_attributes;
+    c.fgColor = m_fgColor;
+    c.bgColor = m_bgColor;
+
     ++m_cursorX;
 }
 
 void TextBuffer::setWriteMode(WriteMode w, bool on)
 {
-    m_writeMode.setFlag(w, true);
+    m_writeMode.setFlag(w, on);
 }
 
 bool TextBuffer::hasWriteMode(WriteMode w)
 {
     return m_writeMode.testFlag(w);
+}
+
+void TextBuffer::setFgColor(QColor color)
+{
+    m_fgColor = color;
+}
+
+void TextBuffer::setBgColor(QColor color)
+{
+    m_bgColor = color;
+}
+
+void TextBuffer::setAttribute(TerminalCharacter::CharacterAttribute attr, bool on)
+{
+    m_attributes.setFlag(attr, on);
 }

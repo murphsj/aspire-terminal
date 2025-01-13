@@ -2,6 +2,7 @@
 #define ASPIRE_TERMINAL_TEXT_BUFFER
 
 #include <QBitArray>
+#include <QColor>
 
 #include <cstddef> // for std::size_t
 
@@ -23,48 +24,60 @@ public:
     TextBuffer();
     TextBuffer(std::size_t columns, std::size_t lines);
     ~ TextBuffer();
-    /* Writes a TerminalCharacter to the buffer at the cursor position. */
+    /** Writes a TerminalCharacter to the buffer at the cursor position. */
     void write(TerminalCharacter c);
-    /* Changes the size of the buffer, */
+    /** Changes the size of the buffer, */
     void resize(std::size_t columns, std::size_t lines);
-    /* Moves cursor down one line. */
+    /** Moves cursor down one line. */
     void nextLine();
-    /* Adds a blank character at the cursor, offsetting other characters */
+    /** Adds a blank character at the cursor, offsetting other characters */
     void insert(int length=1);
-    /* Moves the cursor left by n columns */
+    /** Moves the cursor left by n columns */
     void cursorLeft(std::size_t columnCount=std::size_t{1});
-    /* Moves the cursor right by n columns */
+    /** Moves the cursor right by n columns */
     void cursorRight(std::size_t columnCount=std::size_t{1});
-    /* Moves the cursor up by n lines */
+    /** Moves the cursor up by n lines */
     void cursorUp(std::size_t lineCount=std::size_t{1});
-    /* Moves the cursor down by n lines */
+    /** Moves the cursor down by n lines */
     void cursorDown(std::size_t lineCount=std::size_t{1});
-    /* Moves cursor to the beginning of the current line. */
+    /** Moves cursor to the beginning of the current line. */
     void toStartOfLine();
-    /* Returns whether the given WriteMode flag is enabled. */
+    /** Returns whether the given WriteMode flag is enabled. */
     bool hasWriteMode(WriteMode w);
-    /* Sets whether the given WriteMode flag is enabled. */
+    /** Sets whether the given WriteMode flag is enabled. */
     void setWriteMode(WriteMode w, bool on);
-    /* Returns the column size of the buffer. */
+    /** Sets the color to assign to newly inserted characters. */
+    void setFgColor(QColor color);
+    /** Sets the background color to assign to newly inserted characters. */
+    void setBgColor(QColor color);
+    /** Sets whether a character attribute will be applied to newly inserted characters. */
+    void setAttribute(TerminalCharacter::CharacterAttribute attr, bool on);
+    /** Returns the column size of the buffer. */
     std::size_t getColumns() { return m_columns; }
-    /* Returns the line size of the buffer. */
+    /** Returns the line size of the buffer. */
     std::size_t getLines() { return m_lines; }
 
     QVector<TerminalCharacter>* begin() { return m_characterData; }
     QVector<TerminalCharacter>* end() { return m_characterData + m_lines; }
 private:
-    /* Amount of characters for each line in the buffer. */
+    /** Amount of characters for each line in the buffer. */
     std::size_t m_columns {1};
-    /* Amount of lines in the buffer. */
+    /** Amount of lines in the buffer. */
     std::size_t m_lines {1};
-    /* Column number of the cursor. */
+    /** Column number of the cursor. */
     std::size_t m_cursorX {0};
-    /* Line number of the cursor. */
+    /** Line number of the cursor. */
     std::size_t m_cursorY {0};
-    /* Bit field for options effecting how text is inserted into the buffer. */
+    /** Bit field for options affecting how text is inserted into the buffer. */
     WriteModes m_writeMode {None};
-    /* Array which stores the text in each line. */
+    /** Array which stores the text in each line. */
     QVector<TerminalCharacter>* m_characterData;
+    /** Foreground color to apply to text inserted into the buffer. */
+    QColor m_fgColor;
+    /** Background color to apply to text inserted into the buffer. */
+    QColor m_bgColor;
+    /** Attributes to apply to text inserted into the buffer. */
+    TerminalCharacter::CharacterAttributes m_attributes;
 };
 
 #endif

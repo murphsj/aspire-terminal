@@ -23,17 +23,17 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
 
 public slots:
-    /* Activated when data is written to the terminal. */
+    /** Activated when data is written to the terminal. */
     void recievedFdData(std::string_view output);
 
 private:
     void paintBackground();
     void paintAllCharacters(QPainter& painter, QRect& region);
     void paintCharacter(QPainter& painter, QRect& region, TerminalCharacter c);
-    /*
+    /**
      * Reads one complete character/control sequence from the string at the given index, parses it, and processess the result.
      * Returns the amount of characters read.
-     **/
+     */
     ssize_t parse(std::string_view output, ssize_t index);
     ssize_t parseEscapeSequence(std::string_view output, ssize_t index);
     ssize_t parseCharacter(std::string_view output, ssize_t index);

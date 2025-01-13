@@ -80,6 +80,7 @@ public:
       */
     ssize_t read(std::string_view seq, ssize_t index);
     SequenceType getSequenceType() { return m_sequenceType; }
+    std::vector<SequenceParameter> getParameters() { return m_parameters; }
     char getFinalChar() { return m_finalChar; }
     /** Returns if the sequence should be ignored, either because it is not supported or because it is malformed */
     bool isInvalid() { return m_invalid; }
