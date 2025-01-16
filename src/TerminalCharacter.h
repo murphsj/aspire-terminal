@@ -1,6 +1,7 @@
 #ifndef ASPIRE_TERMINAL_TERMINAL_CHARACTER
 #define ASPIRE_TERMINAL_TERMINAL_CHARACTER
 
+#include "TerminalColor.h"
 #include <QColor>
 #include <qobject.h>
 
@@ -27,9 +28,9 @@ public:
     /** Bit flag of formatting modifiers on this character */
     CharacterAttributes attributes;
     /** The color to draw this character with */
-    QColor fgColor;
+    QColor fgColor {TerminalColor::DefaultForeground};
     /** The color to draw the background of this character with */
-    QColor bgColor;
+    QColor bgColor {TerminalColor::DefaultBackground};
 };
 
 

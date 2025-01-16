@@ -41,6 +41,7 @@ private:
     void applyControlSequence(EscapeSequence cs);
     QFont m_font;
     QFontMetrics m_fontMetrics;
+    QPen m_pen;
     TextBuffer m_buffer;
     Pty m_pty;
 };

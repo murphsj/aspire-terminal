@@ -52,6 +52,8 @@ public:
     void setBgColor(QColor color);
     /** Sets whether a character attribute will be applied to newly inserted characters. */
     void setAttribute(TerminalCharacter::CharacterAttribute attr, bool on);
+    /** Carries out an attribute specified by the 'Set Character Attribute' (SGR) control sequence. */
+    void applyCharAttribute(int id);
     /** Returns the column size of the buffer. */
     std::size_t getColumns() { return m_columns; }
     /** Returns the line size of the buffer. */
@@ -60,6 +62,8 @@ public:
     QVector<TerminalCharacter>* begin() { return m_characterData; }
     QVector<TerminalCharacter>* end() { return m_characterData + m_lines; }
 private:
+    /** Sets character formatting to default. */
+    void resetAttributes();
     /** Amount of characters for each line in the buffer. */
     std::size_t m_columns {1};
     /** Amount of lines in the buffer. */
@@ -73,9 +77,9 @@ private:
     /** Array which stores the text in each line. */
     QVector<TerminalCharacter>* m_characterData;
     /** Foreground color to apply to text inserted into the buffer. */
-    QColor m_fgColor;
+    QColor m_fgColor {TerminalColor::DefaultForeground};
     /** Background color to apply to text inserted into the buffer. */
-    QColor m_bgColor;
+    QColor m_bgColor {TerminalColor::DefaultBackground};
     /** Attributes to apply to text inserted into the buffer. */
     TerminalCharacter::CharacterAttributes m_attributes;
 };

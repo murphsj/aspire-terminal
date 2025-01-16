@@ -1,4 +1,6 @@
 #include "TextBuffer.h"
+#include "TerminalColor.h"
+#include <qdebug.h>
 
 TextBuffer::TextBuffer(): TextBuffer(1, 1)
 {
@@ -84,11 +86,12 @@ void TextBuffer::write(TerminalCharacter c)
     if (m_characterData[m_cursorY].size() < m_cursorX + 1) {
         m_characterData[m_cursorY].resize(m_cursorX + 1);
     }
-    m_characterData[m_cursorY][m_cursorX] = c;
 
     c.attributes = m_attributes;
     c.fgColor = m_fgColor;
     c.bgColor = m_bgColor;
+
+    m_characterData[m_cursorY][m_cursorX] = c;
 
     ++m_cursorX;
 }
@@ -116,4 +119,56 @@ void TextBuffer::setBgColor(QColor color)
 void TextBuffer::setAttribute(TerminalCharacter::CharacterAttribute attr, bool on)
 {
     m_attributes.setFlag(attr, on);
+}
+
+void TextBuffer::resetAttributes()
+{
+    setFgColor(TerminalColor::DefaultForeground);
+    setBgColor(TerminalColor::DefaultBackground);
+}
+
+void TextBuffer::applyCharAttribute(int id)
+{
+    qDebug() << "Applying char attribute " << id;
+    switch (id) {
+    case 0:     resetAttributes();  break;
+    /* 16-bit Colors FG */
+    case 30:    setFgColor(TerminalColor::Black);  break;
+    case 31:    setFgColor(TerminalColor::Red);    break;
+    case 32:    setFgColor(TerminalColor::Green);  break;
+    case 33:    setFgColor(TerminalColor::Yellow); break;
+    case 34:    setFgColor(TerminalColor::Blue);   break;
+    case 35:    setFgColor(TerminalColor::Magenta);break;
+    case 36:    setFgColor(TerminalColor::Cyan);   break;
+    case 37:    setFgColor(TerminalColor::White);  break;
+    case 39:    setFgColor(TerminalColor::DefaultForeground); break;
+    /* 16-bit Colors BG */
+    case 40:    setBgColor(TerminalColor::Black);  break;
+    case 41:    setBgColor(TerminalColor::Red);    break;
+    case 42:    setBgColor(TerminalColor::Green);  break;
+    case 43:    setBgColor(TerminalColor::Yellow); break;
+    case 44:    setBgColor(TerminalColor::Blue);   break;
+    case 45:    setBgColor(TerminalColor::Magenta);break;
+    case 46:    setBgColor(TerminalColor::Cyan);   break;
+    case 47:    setBgColor(TerminalColor::White);  break;
+    case 49:    setBgColor(TerminalColor::DefaultBackground); break;
+    /* Bright Colors FG */
+    case 90:    setFgColor(TerminalColor::BrightBlack);  break;
+    case 91:    setFgColor(TerminalColor::BrightRed);    break;
+    case 92:    setFgColor(TerminalColor::BrightGreen);  break;
+    case 93:    setFgColor(TerminalColor::BrightYellow); break;
+    case 94:    setFgColor(TerminalColor::BrightBlue);   break;
+    case 95:    setFgColor(TerminalColor::BrightMagenta);break;
+    case 96:    setFgColor(TerminalColor::BrightCyan);   break;
+    case 97:    setFgColor(TerminalColor::BrightWhite);  break;
+    /* Bright Colors BG */
+    case 100:   setBgColor(TerminalColor::BrightBlack);  break;
+    case 101:   setBgColor(TerminalColor::BrightRed);    break;
+    case 102:   setBgColor(TerminalColor::BrightGreen);  break;
+    case 103:   setBgColor(TerminalColor::BrightYellow); break;
+    case 104:   setBgColor(TerminalColor::BrightBlue);   break;
+    case 105:   setBgColor(TerminalColor::BrightMagenta);break;
+    case 106:   setBgColor(TerminalColor::BrightCyan);   break;
+    case 107:   setBgColor(TerminalColor::BrightWhite);  break;
+    }
 }

@@ -11,6 +11,7 @@ TerminalWidget::TerminalWidget(QWidget *parent, TerminalCharacter* _c)
     , m_font("Monospace")
     , m_fontMetrics(m_font)
     , m_buffer(60, 60)
+    , m_pen()
 {
     // Style hint should result in a monospace font being found even if Monospace isn't available
     // (as is the case on Windows)
@@ -60,6 +61,9 @@ void TerminalWidget::paintAllCharacters(QPainter& painter, QRect& region)
 
 void TerminalWidget::paintCharacter(QPainter& painter, QRect& region, TerminalCharacter c)
 {
+    painter.setPen(c.fgColor);
+
+    painter.fillRect(region, c.bgColor);
     painter.drawText(region, c.character);
 }
 
@@ -111,6 +115,8 @@ ssize_t TerminalWidget::parseEscapeSequence(std::string_view seq, ssize_t index)
         }
     }
 
+    
+
     escSequence.debugInfo();
 
     return newIndex;
@@ -123,7 +129,7 @@ void TerminalWidget::applyControlSequence(EscapeSequence cs)
     case 'm':
         for (EscapeSequence::SequenceParameter param : cs.getParameters()) {
             if (const int* value = std::get_if<int>(&param)) {
-                
+                m_buffer.applyCharAttribute(*value);
             }
         }
         break;
