@@ -50,11 +50,12 @@ ssize_t EscapeSequence::readControlSequence(std::string_view seq, ssize_t index)
         } else if (isDigit(c)) {
             // This is a numeric parameter, parse a number out of it
             int numericParameter = 0;
-            while (isDigit(c) && index < seq.size()) {
+            while (index < seq.size()) {
+                c = seq.at(index);
+                if (!isDigit(c)) break;
                 numericParameter *= 10;
                 numericParameter += digitCharToInt(c);
                 ++index;
-                c = seq.at(index);
             }
             m_parameters.push_back(numericParameter);
             // If there's a semicolon at the end, skip it
@@ -75,7 +76,7 @@ ssize_t EscapeSequence::readControlSequence(std::string_view seq, ssize_t index)
         index++;
     }
 
-    if (index >= seq.size() && !isCsFinal(seq.at(index))) {
+    if (index > seq.size() || !isCsFinal(seq.at(index))) {
         m_invalid = true;
         qDebug() << "Parsed malformed control sequence: ended without terminating character";
     } else {

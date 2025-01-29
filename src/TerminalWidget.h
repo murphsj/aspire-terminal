@@ -18,13 +18,13 @@ class TerminalWidget: public QWidget
 public:
     TerminalWidget(QWidget* parent = nullptr, TerminalCharacter* characterData = nullptr);
 
-protected:
-    void paintEvent(QPaintEvent* event) override;
-    void keyPressEvent(QKeyEvent* event) override;
-
 public slots:
     /** Activated when data is written to the terminal. */
     void recievedFdData(std::string_view output);
+    
+protected:
+    void paintEvent(QPaintEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
 private:
     void paintBackground(QPainter& painter, QRect& region);

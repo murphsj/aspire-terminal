@@ -157,7 +157,7 @@ void TextBuffer::write(TerminalCharacter c)
     if (hasWriteMode(WriteMode::Insert)) insert();
 
     if (m_characterData[m_cursorY].size() < m_cursorX + 1) {
-        m_characterData[m_cursorY].resize(m_cursorX + 1);
+        m_characterData[m_cursorY].resize(m_cursorX + 2);
     }
 
     c.attributes = m_attributes;
@@ -165,8 +165,6 @@ void TextBuffer::write(TerminalCharacter c)
     c.bgColor = m_bgColor;
 
     m_characterData[m_cursorY][m_cursorX] = c;
-
-    qDebug() << m_cursorY;
 
     ++m_cursorX;
 }
@@ -295,7 +293,7 @@ void TextBuffer::applyControlSequence(EscapeSequence cs)
     case 'H':
     case 'f':
         // CUP, HVP Set Cursor Position
-        setCursorPosition(cs.getParameter(0, 1), cs.getParameter(0, 1));
+        setCursorPosition(cs.getParameter(0, 1), cs.getParameter(1, 1));
         break;
     case 'J':
         // ED Erase in Display
@@ -307,6 +305,7 @@ void TextBuffer::applyControlSequence(EscapeSequence cs)
         }
         break;
     case 'm':
+        // SGR Set Graphics Rendition
         for (EscapeSequence::SequenceParameter param : params) {
             if (const int* value = std::get_if<int>(&param)) {
                 applyCharAttribute(*value);

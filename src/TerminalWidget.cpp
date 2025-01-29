@@ -5,13 +5,14 @@
 
 #include <QPainter>
 #include <QKeyEvent>
+#include <cstddef>
 #include <qwidget.h>
 
 TerminalWidget::TerminalWidget(QWidget *parent, TerminalCharacter* _c)
     : QWidget(parent)
     , m_font("Monospace")
     , m_fontMetrics(m_font)
-    , m_buffer(60, 60)
+    , m_buffer(100, 300)
     , m_pen()
 {
     // Style hint should result in a monospace font being found even if Monospace isn't available
@@ -20,7 +21,7 @@ TerminalWidget::TerminalWidget(QWidget *parent, TerminalCharacter* _c)
     setFocusPolicy(Qt::StrongFocus);
 
     connect(&m_pty, &Pty::recieved, this, &TerminalWidget::recievedFdData);
-    m_pty.start(60, 60);
+    m_pty.start(100, 300);
 }
 
 void TerminalWidget::paintEvent(QPaintEvent* event)
@@ -43,7 +44,7 @@ void TerminalWidget::keyPressEvent(QKeyEvent* event)
 
 void TerminalWidget::paintBackground(QPainter& painter, QRect& region)
 {
-    painter.fillRect(region, TerminalColor::BrightBlue);
+    painter.fillRect(region, TerminalColor::DefaultBackground);
 }
 
 void TerminalWidget::paintAllCharacters(QPainter& painter, QRect& region)
@@ -51,11 +52,14 @@ void TerminalWidget::paintAllCharacters(QPainter& painter, QRect& region)
     QPoint topLeft = region.topLeft();
     int charWidth { m_fontMetrics.averageCharWidth() };
     int charHeight { m_fontMetrics.height() };
-    int rows { 0 };
-    int cols { 0 };
+    std::size_t rows { 0 };
+    std::size_t cols { 0 };
+
+    std::size_t maxCols { qMin(static_cast<std::size_t>(region.width() / charWidth), m_buffer.getColumns()) };
+
     for (QVector<TerminalCharacter> line : m_buffer) {
         for (TerminalCharacter c : line) {
-            if (cols > m_buffer.getColumns()) {
+            if (cols > maxCols) {
                 cols = 0;
                 rows++;
             }
