@@ -1,8 +1,8 @@
 #ifndef ASPIRE_TERMINAL_ESCAPE_SEQUENCE
 #define ASPIRE_TERMINAL_ESCAPE_SEQUENCE
 
+#include <qdebug.h>
 #include <qglobal.h>
-#include <string>
 #include <string_view>
 #include <variant>
 #include <vector>
@@ -80,11 +80,23 @@ public:
       */
     ssize_t read(std::string_view seq, ssize_t index);
     SequenceType getSequenceType() { return m_sequenceType; }
-    std::vector<SequenceParameter> getParameters() { return m_parameters; }
+    std::vector<SequenceParameter>& getParameters() { return m_parameters; }
     char getFinalChar() { return m_finalChar; }
-    /** Returns if the sequence should be ignored, either because it is not supported or because it is malformed */
+    /** Returns true if the sequence should be ignored, either because it is not supported or because it is malformed */
     bool isInvalid() { return m_invalid; }
     void debugInfo();
+
+    /** Returns the value of a parameter at a certain index, or a default value if there is no valid parameter at that index. */
+    template <typename T>
+    T getParameter(int index, T defaultValue)
+    {
+        if (index >= m_parameters.size()) return defaultValue;
+        if (const T* value = std::get_if<T>(&m_parameters.at(index))) {
+            return *value;
+        } else {
+            return defaultValue;
+        }
+    };
 
 private:
     ssize_t readControlSequence(std::string_view seq, ssize_t index);

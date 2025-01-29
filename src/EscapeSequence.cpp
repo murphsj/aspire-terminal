@@ -91,7 +91,6 @@ void EscapeSequence::debugInfo()
 {
     qDebug() << "Parameters:";
     for (SequenceParameter param : m_parameters) {
-        qDebug() << "param";
         std::visit([](auto&& p) {qDebug() << p;}, param);
     }
     qDebug() << "Final char:" << m_finalChar;

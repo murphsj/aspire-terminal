@@ -1,6 +1,7 @@
 #include "TerminalWidget.h"
 #include "EscapeSequence.h"
 #include "TerminalCharacter.h"
+#include "TerminalColor.h"
 
 #include <QPainter>
 #include <QKeyEvent>
@@ -27,6 +28,7 @@ void TerminalWidget::paintEvent(QPaintEvent* event)
     QRect region { contentsRect() };
     QPainter painter(this);
     painter.setFont(m_font);
+    paintBackground(painter, region);
     paintAllCharacters(painter, region);
 }
 
@@ -39,6 +41,11 @@ void TerminalWidget::keyPressEvent(QKeyEvent* event)
     }
 }
 
+void TerminalWidget::paintBackground(QPainter& painter, QRect& region)
+{
+    painter.fillRect(region, TerminalColor::BrightBlue);
+}
+
 void TerminalWidget::paintAllCharacters(QPainter& painter, QRect& region)
 {
     QPoint topLeft = region.topLeft();
@@ -48,19 +55,26 @@ void TerminalWidget::paintAllCharacters(QPainter& painter, QRect& region)
     int cols { 0 };
     for (QVector<TerminalCharacter> line : m_buffer) {
         for (TerminalCharacter c : line) {
-            cols++;
             if (cols > m_buffer.getColumns()) {
                 cols = 0;
                 rows++;
             }
             QRect drawRect = QRect(cols * charWidth, rows * charHeight, charWidth, charHeight);
             paintCharacter(painter, drawRect, c);
+            cols++;
         }
+        cols = 0;
+        rows++;
     }
 }
 
 void TerminalWidget::paintCharacter(QPainter& painter, QRect& region, TerminalCharacter c)
 {
+    m_font.setBold(c.attributes.testFlag(TerminalCharacter::Bold));
+    m_font.setItalic(c.attributes.testFlag(TerminalCharacter::Italic));
+    m_font.setUnderline(c.attributes.testFlag(TerminalCharacter::Underline));
+    m_font.setStrikeOut(c.attributes.testFlag(TerminalCharacter::Strikethrough));
+    painter.setFont(m_font);
     painter.setPen(c.fgColor);
 
     painter.fillRect(region, c.bgColor);
@@ -80,11 +94,15 @@ void TerminalWidget::recievedFdData(std::string_view output)
 
 ssize_t TerminalWidget::parse(std::string_view output, ssize_t index)
 {
-    static const char ESC = '\033';
-
     const char& ch = output.at(index);
-    if (ch == ESC) {
+    if (ch == EscapeSequence::ESC_INTRODUCER) {
         return parseEscapeSequence(output, ++index);
+    } else if (ch == TerminalCharacter::LF) {
+        m_buffer.lineFeed();
+        return ++index;
+    } else if (ch == TerminalCharacter::CR) {
+        m_buffer.carriageReturn();
+        return ++index;
     } else {
         return parseCharacter(output, index);
     }
@@ -108,7 +126,7 @@ ssize_t TerminalWidget::parseEscapeSequence(std::string_view seq, ssize_t index)
             applyEscapeSequence(escSequence);
             break;
         case EscapeSequence::SequenceType::CSI:
-            applyControlSequence(escSequence);
+            m_buffer.applyControlSequence(escSequence);
             break;
         case EscapeSequence::SequenceType::OSC:
             break;
@@ -120,20 +138,6 @@ ssize_t TerminalWidget::parseEscapeSequence(std::string_view seq, ssize_t index)
     escSequence.debugInfo();
 
     return newIndex;
-}
-
-void TerminalWidget::applyControlSequence(EscapeSequence cs)
-{
-    switch (cs.getFinalChar())
-    {
-    case 'm':
-        for (EscapeSequence::SequenceParameter param : cs.getParameters()) {
-            if (const int* value = std::get_if<int>(&param)) {
-                m_buffer.applyCharAttribute(*value);
-            }
-        }
-        break;
-    }
 }
 
 void TerminalWidget::applyEscapeSequence(EscapeSequence cs)

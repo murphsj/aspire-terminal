@@ -1,4 +1,5 @@
 #include "TextBuffer.h"
+#include "EscapeSequence.h"
 #include "TerminalColor.h"
 #include <qdebug.h>
 
@@ -18,13 +19,35 @@ TextBuffer::TextBuffer(std::size_t columns, std::size_t lines)
 {
     m_characterData = new QVector<TerminalCharacter>[lines];
     for (int i {0}; i < m_lines; i++) {
-        m_characterData[i] = QVector<TerminalCharacter>(m_columns);
+        m_characterData[i] = QVector<TerminalCharacter>(1);
     }
 }
 
-void TextBuffer::toStartOfLine()
+void TextBuffer::setCursorX(std::size_t pos)
 {
-    m_cursorX = 0;
+    pos -= 1;
+    m_cursorX = qMax(std::size_t {0}, qMin(pos, m_columns));
+}
+
+void TextBuffer::setCursorY(std::size_t pos)
+{
+    pos -= 1;
+    m_cursorY = qMax(std::size_t {0}, qMin(pos, m_lines));
+}
+
+void TextBuffer::setCursorPosition(std::size_t x, std::size_t y)
+{
+    setCursorX(x); setCursorY(y);
+}
+
+void TextBuffer::lineFeed()
+{
+    setCursorY(m_cursorY + 2);
+}
+
+void TextBuffer::carriageReturn()
+{
+    setCursorX(1);
 }
 
 void TextBuffer::cursorDown(std::size_t lineCount)
@@ -43,23 +66,73 @@ void TextBuffer::cursorUp(std::size_t lineCount)
 
 void TextBuffer::cursorRight(std::size_t charCount)
 {
-    // Cursor movement commands do not line wrap
     m_cursorX = qMax(m_cursorX + charCount, m_columns-1);
 }
 
 void TextBuffer::cursorLeft(std::size_t charCount)
 {
-    // Cursor movement commands do not line wrap
     m_cursorX = qMin(m_cursorX - charCount, std::size_t { 0 });
 }
 
-void TextBuffer::nextLine()
+void TextBuffer::cursorNextLine(std::size_t lineCount)
 {
-    if (m_cursorY >= m_lines) {
-        // TODO: scroll down
-    } else {
-        m_cursorY += 1;
+    m_cursorX = 0;
+    while (lineCount > 0 && m_cursorY < m_lines - 1) {
+        ++m_cursorY;
+        --lineCount;
     }
+}
+
+void TextBuffer::cursorPreviousLine(std::size_t lineCount)
+{
+    m_cursorX = 0;
+    while (lineCount > 0 && m_cursorY > 0) {
+        --m_cursorY;
+        --lineCount;
+    }
+}
+
+void TextBuffer::fillInRange(TerminalCharacter c, std::size_t startX, std::size_t startY, std::size_t endX, std::size_t endY)
+{
+    static TerminalCharacter blank {};
+
+    bool isErasing {c == blank};
+    std::size_t startLoc {(startY * m_columns) + startX};
+    std::size_t endLoc {(endY * m_columns) + endX};
+    assert(endLoc > startLoc);
+
+    for (int y = startY; y < endY; ++y) {
+        QVector<TerminalCharacter>& line = m_characterData[y];
+        std::size_t start {(y == startY) ? startX : 0};
+        std::size_t end {(y == endY) ? endX : m_columns};
+
+        if (isErasing && end == m_columns) {
+            line.resize(start);
+        } else {
+            if (line.size() < end) {
+                line.resize(end);
+            }
+
+            for (int x = start; x < end; ++x) {
+                line[x] = c;
+            }
+        }
+    }
+}
+
+void TextBuffer::eraseToEnd()
+{
+    fillInRange(TerminalCharacter {}, m_cursorX, m_cursorY, m_columns, m_lines);
+}
+
+void TextBuffer::eraseFromStart()
+{
+    fillInRange(TerminalCharacter {}, m_columns, m_lines, m_cursorX, m_cursorY);
+}
+
+void TextBuffer::eraseAll()
+{
+    fillInRange(TerminalCharacter {}, 0, 0, m_columns, m_lines);
 }
 
 void TextBuffer::insert(int length)
@@ -93,6 +166,8 @@ void TextBuffer::write(TerminalCharacter c)
 
     m_characterData[m_cursorY][m_cursorX] = c;
 
+    qDebug() << m_cursorY;
+
     ++m_cursorX;
 }
 
@@ -116,7 +191,7 @@ void TextBuffer::setBgColor(QColor color)
     m_bgColor = color;
 }
 
-void TextBuffer::setAttribute(TerminalCharacter::CharacterAttribute attr, bool on)
+void TextBuffer::setAttribute(TerminalCharacter::Attribute attr, bool on)
 {
     m_attributes.setFlag(attr, on);
 }
@@ -125,13 +200,19 @@ void TextBuffer::resetAttributes()
 {
     setFgColor(TerminalColor::DefaultForeground);
     setBgColor(TerminalColor::DefaultBackground);
+    // It might be better to clear this in-place instead of making a new blank QFlag
+    m_attributes = {};
 }
 
 void TextBuffer::applyCharAttribute(int id)
 {
-    qDebug() << "Applying char attribute " << id;
     switch (id) {
     case 0:     resetAttributes();  break;
+    /* Formatting */
+    case 1:     setAttribute(TerminalCharacter::Attribute::Bold,       true); break;
+    case 2:     setAttribute(TerminalCharacter::Attribute::Faint,      true); break;
+    case 3:     setAttribute(TerminalCharacter::Attribute::Italic,     true); break;
+    case 4:     setAttribute(TerminalCharacter::Attribute::Underline,  true); break;
     /* 16-bit Colors FG */
     case 30:    setFgColor(TerminalColor::Black);  break;
     case 31:    setFgColor(TerminalColor::Red);    break;
@@ -170,5 +251,67 @@ void TextBuffer::applyCharAttribute(int id)
     case 105:   setBgColor(TerminalColor::BrightMagenta);break;
     case 106:   setBgColor(TerminalColor::BrightCyan);   break;
     case 107:   setBgColor(TerminalColor::BrightWhite);  break;
+
+    default: qDebug() << "Non-supported SGR argument supplied: " << id; break;
+    }
+}
+
+void TextBuffer::applyControlSequence(EscapeSequence cs)
+{
+    std::vector<EscapeSequence::SequenceParameter> params = cs.getParameters();
+
+    switch (cs.getFinalChar()) {
+    case '@':
+        // ICH Insert Character
+        insert(cs.getParameter(0, 1));
+        break;
+    case 'A':
+        // CUU Cursor Up
+        cursorUp(cs.getParameter(0, 1));
+        break;
+    case 'B':
+        // CUD Cursor Down
+        cursorDown(cs.getParameter(0, 1));
+        break;
+    case 'C':
+        // CUF Cursor Forwards
+        cursorRight(cs.getParameter(0, 1));
+        break;
+    case 'D':
+        // CUB Cursor Backwards
+        cursorLeft(cs.getParameter(0, 1));
+        break;
+    case 'E':
+        // CNL Cursor Next Line
+        cursorNextLine(cs.getParameter(0, 1));
+        break;
+    case 'F':
+        // CPL Cursor Preceding Line
+        cursorPreviousLine(cs.getParameter(0, 1));
+        break;
+    case 'G':
+        // CHA Set Character Absolute
+        setCursorX(cs.getParameter(0, 1));
+    case 'H':
+    case 'f':
+        // CUP, HVP Set Cursor Position
+        setCursorPosition(cs.getParameter(0, 1), cs.getParameter(0, 1));
+        break;
+    case 'J':
+        // ED Erase in Display
+        switch (cs.getParameter(0, 0)) {
+            case 0: eraseToEnd();       break;
+            case 1: eraseFromStart();   break;
+            case 2: eraseAll();         break;
+            default: break;
+        }
+        break;
+    case 'm':
+        for (EscapeSequence::SequenceParameter param : params) {
+            if (const int* value = std::get_if<int>(&param)) {
+                applyCharAttribute(*value);
+            }
+        }
+        break;
     }
 }

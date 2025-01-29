@@ -25,10 +25,6 @@ namespace TerminalColor
 
     constexpr QColor DefaultForeground {White};
     constexpr QColor DefaultBackground {Black};
-
-    QColor readColor16(int id);
-    QColor readColor256(int id);
-    QColor readColorRGB(int r, int g, int b);
 };
 
 #endif 

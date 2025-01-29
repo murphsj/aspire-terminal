@@ -27,7 +27,7 @@ public slots:
     void recievedFdData(std::string_view output);
 
 private:
-    void paintBackground();
+    void paintBackground(QPainter& painter, QRect& region);
     void paintAllCharacters(QPainter& painter, QRect& region);
     void paintCharacter(QPainter& painter, QRect& region, TerminalCharacter c);
     /**

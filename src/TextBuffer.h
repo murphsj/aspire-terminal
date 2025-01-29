@@ -6,6 +6,7 @@
 
 #include <cstddef> // for std::size_t
 
+#include "EscapeSequence.h"
 #include "TerminalCharacter.h"
 
 /**
@@ -30,8 +31,18 @@ public:
     void resize(std::size_t columns, std::size_t lines);
     /** Moves cursor down one line. */
     void nextLine();
-    /** Adds a blank character at the cursor, offsetting other characters */
+    /** Adds a blank character at the cursor, offsetting other characters. */
     void insert(int length=1);
+    /** Sets which column the cursor is on. */
+    void setCursorX(std::size_t pos);
+    /** Sets which line the cursor is on. */
+    void setCursorY(std::size_t pos);
+    /** Sets the column and line of the cursor. */
+    void setCursorPosition(std::size_t x, std::size_t y);
+    /** Parses an LF character; moves the cursor down one line, scrolling if neccecary. */
+    void lineFeed();
+    /** Parses a CR character; moves the cursor to the start of the current line. */
+    void carriageReturn();
     /** Moves the cursor left by n columns */
     void cursorLeft(std::size_t columnCount=std::size_t{1});
     /** Moves the cursor right by n columns */
@@ -40,8 +51,16 @@ public:
     void cursorUp(std::size_t lineCount=std::size_t{1});
     /** Moves the cursor down by n lines */
     void cursorDown(std::size_t lineCount=std::size_t{1});
-    /** Moves cursor to the beginning of the current line. */
-    void toStartOfLine();
+    /** Moves cursor to the start of the next nth line. */
+    void cursorNextLine(std::size_t lineCount=std::size_t{1});
+    /** Moves cursor to the start of the previous nth line. */
+    void cursorPreviousLine(std::size_t lineCount=std::size_t{1});
+    /** Clears every character from the cursor position to the end of the buffer. */
+    void eraseToEnd();
+    /** Clears every character from the start of the buffer to the cursor position. */
+    void eraseFromStart();
+    /** Clears every character in the buffer. */
+    void eraseAll();
     /** Returns whether the given WriteMode flag is enabled. */
     bool hasWriteMode(WriteMode w);
     /** Sets whether the given WriteMode flag is enabled. */
@@ -51,17 +70,22 @@ public:
     /** Sets the background color to assign to newly inserted characters. */
     void setBgColor(QColor color);
     /** Sets whether a character attribute will be applied to newly inserted characters. */
-    void setAttribute(TerminalCharacter::CharacterAttribute attr, bool on);
+    void setAttribute(TerminalCharacter::Attribute attr, bool on);
     /** Carries out an attribute specified by the 'Set Character Attribute' (SGR) control sequence. */
     void applyCharAttribute(int id);
+    /** Carries out a control sequence command. */
+    void applyControlSequence(EscapeSequence cs);
     /** Returns the column size of the buffer. */
     std::size_t getColumns() { return m_columns; }
     /** Returns the line size of the buffer. */
     std::size_t getLines() { return m_lines; }
 
+
     QVector<TerminalCharacter>* begin() { return m_characterData; }
     QVector<TerminalCharacter>* end() { return m_characterData + m_lines; }
 private:
+    /** Sets all characters from the start to the end position to the given character. If the given character is blank, erases all characters in range. */
+    void fillInRange(TerminalCharacter c, std::size_t startX, std::size_t startY, std::size_t endX, std::size_t endY);
     /** Sets character formatting to default. */
     void resetAttributes();
     /** Amount of characters for each line in the buffer. */
@@ -81,7 +105,7 @@ private:
     /** Background color to apply to text inserted into the buffer. */
     QColor m_bgColor {TerminalColor::DefaultBackground};
     /** Attributes to apply to text inserted into the buffer. */
-    TerminalCharacter::CharacterAttributes m_attributes;
+    TerminalCharacter::Attributes m_attributes;
 };
 
 #endif
