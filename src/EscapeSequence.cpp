@@ -1,6 +1,7 @@
 #include <qdebug.h>
 #include <variant>
 
+#include "TerminalCharacter.h"
 #include "EscapeSequence.h"
 
 ssize_t EscapeSequence::read(std::string_view seq, ssize_t index)
@@ -31,6 +32,13 @@ ssize_t EscapeSequence::read(std::string_view seq, ssize_t index)
             return ++index;
         }
         return readControlSequence(seq, index);
+    } else if (c == OSC_INTRODUCER) {
+        if (!m_intermediateChars.empty()) {
+            qDebug() << "Parsed malformed ESC sequence: OSC with intermediate arguments";
+            m_invalid = true;
+            return ++index;
+        }
+        return readOperatingSystemControl(seq, index);
     }
 
     m_finalChar = c;
@@ -73,7 +81,7 @@ ssize_t EscapeSequence::readControlSequence(std::string_view seq, ssize_t index)
         char c = seq.at(index);
         if (!isCsIntermediate(c)) break;
         m_intermediateChars.push_back(c);
-        index++;
+        ++index;
     }
 
     if (index > seq.size() || !isCsFinal(seq.at(index))) {
@@ -84,6 +92,19 @@ ssize_t EscapeSequence::readControlSequence(std::string_view seq, ssize_t index)
     }
 
     m_sequenceType = SequenceType::CSI;
+
+    return ++index;
+}
+
+ssize_t EscapeSequence::readOperatingSystemControl(std::string_view seq, ssize_t index)
+{
+    // We ignore all OSCs. OSCs are terminated by the Bell character, so just skip to the next occurence of it
+    m_invalid = true;
+    while (index < seq.size()) {
+        char c = seq.at(index);
+        if (c == TerminalCharacter::BELL) break;
+        ++index;
+    }
 
     return ++index;
 }

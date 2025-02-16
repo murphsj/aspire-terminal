@@ -10,6 +10,7 @@
 #include <termios.h>
 #include <unistd.h> // for read(), write()
 #include <fcntl.h>
+#include <qdebug.h>
 
 #include <QSocketNotifier>
 
@@ -54,6 +55,8 @@ void Pty::setSize(std::size_t width, std::size_t height)
         .ws_row = static_cast<unsigned short>(height),
         .ws_col = static_cast<unsigned short>(width),
     };
+
+    qDebug() << size.ws_col;
 
     int res {ioctl(m_fileDescriptor, TIOCSWINSZ, &size)};
     if (res == -1) {

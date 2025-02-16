@@ -5,7 +5,7 @@
 
 TextBuffer::TextBuffer(): TextBuffer(1, 1)
 {
-    
+
 }
 
 TextBuffer::~TextBuffer()
@@ -16,10 +16,11 @@ TextBuffer::~TextBuffer()
 TextBuffer::TextBuffer(std::size_t columns, std::size_t lines)
     :m_columns(columns)
     ,m_lines(lines)
+    ,m_writeMode(WrapLines)
 {
     m_characterData = new QVector<TerminalCharacter>[lines];
     for (int i {0}; i < m_lines; i++) {
-        m_characterData[i] = QVector<TerminalCharacter>(1);
+        m_characterData[i] = QVector<TerminalCharacter>(columns);
     }
 }
 
@@ -35,6 +36,16 @@ void TextBuffer::setCursorY(std::size_t pos)
     m_cursorY = qMax(std::size_t {0}, qMin(pos, m_lines));
 }
 
+std::size_t TextBuffer::getCursorX()
+{
+    return m_cursorX;
+}
+
+std::size_t TextBuffer::getCursorY()
+{
+    return m_cursorY;
+}
+
 void TextBuffer::setCursorPosition(std::size_t x, std::size_t y)
 {
     setCursorX(x); setCursorY(y);
@@ -43,11 +54,13 @@ void TextBuffer::setCursorPosition(std::size_t x, std::size_t y)
 void TextBuffer::lineFeed()
 {
     setCursorY(m_cursorY + 2);
+    qDebug() << "LF sent";
 }
 
 void TextBuffer::carriageReturn()
 {
     setCursorX(1);
+    qDebug() << "CR sent";
 }
 
 void TextBuffer::cursorDown(std::size_t lineCount)
@@ -74,6 +87,18 @@ void TextBuffer::cursorLeft(std::size_t charCount)
     m_cursorX = qMin(m_cursorX - charCount, std::size_t { 0 });
 }
 
+void TextBuffer::backspace()
+{
+    if (m_cursorX == 0) {
+        if (m_cursorY > 0) {
+            m_cursorY --;
+        }
+        m_cursorX = m_columns-1;
+    } else {
+        m_cursorX--;
+    }
+}
+
 void TextBuffer::cursorNextLine(std::size_t lineCount)
 {
     m_cursorX = 0;
@@ -94,65 +119,73 @@ void TextBuffer::cursorPreviousLine(std::size_t lineCount)
 
 void TextBuffer::fillInRange(TerminalCharacter c, std::size_t startX, std::size_t startY, std::size_t endX, std::size_t endY)
 {
-    static TerminalCharacter blank {};
-
-    bool isErasing {c == blank};
     std::size_t startLoc {(startY * m_columns) + startX};
     std::size_t endLoc {(endY * m_columns) + endX};
-    assert(endLoc > startLoc);
+    assert(endLoc >= startLoc);
 
-    for (int y = startY; y < endY; ++y) {
+    for (int y = startY; y <= endY; ++y) {
         QVector<TerminalCharacter>& line = m_characterData[y];
         std::size_t start {(y == startY) ? startX : 0};
         std::size_t end {(y == endY) ? endX : m_columns};
 
-        if (isErasing && end == m_columns) {
-            line.resize(start);
-        } else {
-            if (line.size() < end) {
-                line.resize(end);
-            }
+        if (line.size() < end) {
+            line.resize(end);
+        }
 
-            for (int x = start; x < end; ++x) {
-                line[x] = c;
-            }
+        for (int x = start; x < end; ++x) {
+            line[x] = c;
         }
     }
 }
 
 void TextBuffer::eraseToEnd()
 {
-    fillInRange(TerminalCharacter {}, m_cursorX, m_cursorY, m_columns, m_lines);
+    fillInRange(TerminalCharacter {}, m_cursorX, m_cursorY, m_columns-1, m_lines-1);
 }
 
 void TextBuffer::eraseFromStart()
 {
-    fillInRange(TerminalCharacter {}, m_columns, m_lines, m_cursorX, m_cursorY);
+    fillInRange(TerminalCharacter {}, m_columns-1, m_lines-1, m_cursorX, m_cursorY);
 }
 
 void TextBuffer::eraseAll()
 {
-    fillInRange(TerminalCharacter {}, 0, 0, m_columns, m_lines);
+    fillInRange(TerminalCharacter {}, 0, 0, m_columns-1, m_lines-1);
 }
+
+void TextBuffer::eraseLineToEnd()
+{
+    fillInRange(TerminalCharacter {}, m_cursorX, m_cursorY, m_columns-1, m_cursorY);
+}
+
+void TextBuffer::eraseLineFromStart()
+{
+    fillInRange(TerminalCharacter {}, 0, m_cursorY, m_cursorX, m_cursorY);
+}
+
+void TextBuffer::eraseLineAll()
+{
+    fillInRange(TerminalCharacter {}, 0, m_cursorY, m_columns-1, m_cursorY);
+}
+
+
 
 void TextBuffer::insert(int length)
 {
     static TerminalCharacter blank {};
     for (int i {0}; i < length; ++i) {
-        m_characterData[m_cursorY].insert(m_cursorX, blank);
         ++m_cursorX;
+        m_characterData[m_cursorY].insert(m_cursorX, blank);
     }
 }
 
 void TextBuffer::write(TerminalCharacter c)
 {
-    /*
-    if (m_cursorX + 1 > m_columns) {
-        toStartOfLine();
-        // If WrapLines is off, keep writing at the start of the current line
-        // TODO: clear current line? Happens in zsh atleast
-        if (hasWriteMode(WriteMode::WrapLines)) nextLine();
-    }*/
+    if (hasWriteMode(WriteMode::WrapLines) && (m_cursorX + 1 > m_columns))
+    {
+        carriageReturn();
+        lineFeed();
+    }
 
     if (hasWriteMode(WriteMode::Insert)) insert();
 
@@ -166,7 +199,7 @@ void TextBuffer::write(TerminalCharacter c)
 
     m_characterData[m_cursorY][m_cursorX] = c;
 
-    ++m_cursorX;
+    if (m_cursorX < m_columns) ++m_cursorX;
 }
 
 void TextBuffer::setWriteMode(WriteMode w, bool on)
@@ -290,10 +323,42 @@ void TextBuffer::applyControlSequence(EscapeSequence cs)
     case 'G':
         // CHA Set Character Absolute
         setCursorX(cs.getParameter(0, 1));
+        break;
     case 'H':
     case 'f':
         // CUP, HVP Set Cursor Position
-        setCursorPosition(cs.getParameter(0, 1), cs.getParameter(1, 1));
+        qDebug() << "Setting position:" << cs.getParameter(0, 1) << cs.getParameter(1, 1);
+        setCursorPosition(cs.getParameter(1, 1), cs.getParameter(0, 1));
+        break;
+    case 'd':
+        // VPA Line Position Absolute
+        setCursorY(cs.getParameter(1, 1));
+        break;
+    case 'e':
+        // VPR Line Position Relative
+        setCursorY(m_cursorY + cs.getParameter(0, 1));
+        break;
+    case 'h':
+        // DECSET Set Private Mode
+        switch (cs.getParameter(1, -1)) {
+        case 7:
+            setWriteMode(WriteMode::WrapLines, true);   break;
+        }
+        break;
+    case 'l':
+        // DECRST Reset Private Mode
+        switch (cs.getParameter(1, -1)) {
+        case 7:
+            setWriteMode(WriteMode::WrapLines, false);   break;
+        }
+        break;
+    case '`':
+        // HPA Character Position Absolute
+        setCursorX(cs.getParameter(0, 1));
+        break;
+    case 'a':
+        // HPR Character Position Relative
+        setCursorX(m_cursorX + cs.getParameter(0, 1));
         break;
     case 'J':
         // ED Erase in Display
@@ -301,6 +366,15 @@ void TextBuffer::applyControlSequence(EscapeSequence cs)
             case 0: eraseToEnd();       break;
             case 1: eraseFromStart();   break;
             case 2: eraseAll();         break;
+            default: break;
+        }
+        break;
+    case 'K':
+        // EL Erase in Line
+        switch (cs.getParameter(0, 0)) {
+            case 0: eraseLineToEnd();       break;
+            case 1: eraseLineFromStart();   break;
+            case 2: eraseLineAll();         break;
             default: break;
         }
         break;

@@ -27,6 +27,7 @@ public:
     
     static const char ESC_INTRODUCER = '\033';
     static const char CS_INTRODUCER = '[';
+    static const char OSC_INTRODUCER = ']';
 
     /* Returns whether or not the character is a valid intermediate character in an escape sequence. */
     static bool isEscIntermediate(char c)
@@ -100,6 +101,7 @@ public:
 
 private:
     ssize_t readControlSequence(std::string_view seq, ssize_t index);
+    ssize_t readOperatingSystemControl(std::string_view seq, ssize_t index);
 
     SequenceType m_sequenceType {SequenceType::ESC};
     std::vector<SequenceParameter> m_parameters {};

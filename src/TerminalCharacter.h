@@ -23,6 +23,9 @@ struct TerminalCharacter
 public:
     const static char LF = '\n';
     const static char CR = '\r';
+    const static char BS = '\b';
+    const static char DEL = '\x7f';
+    const static char BELL = '\a';
 
     TerminalCharacter(QChar _v=QChar(' ')): character(_v) {};
 

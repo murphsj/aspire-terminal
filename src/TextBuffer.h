@@ -37,6 +37,10 @@ public:
     void setCursorX(std::size_t pos);
     /** Sets which line the cursor is on. */
     void setCursorY(std::size_t pos);
+    /** Returns which column the cursor is on. */
+    std::size_t getCursorX();
+    /** Returns which line the cursor is on. */
+    std::size_t getCursorY();
     /** Sets the column and line of the cursor. */
     void setCursorPosition(std::size_t x, std::size_t y);
     /** Parses an LF character; moves the cursor down one line, scrolling if neccecary. */
@@ -51,6 +55,8 @@ public:
     void cursorUp(std::size_t lineCount=std::size_t{1});
     /** Moves the cursor down by n lines */
     void cursorDown(std::size_t lineCount=std::size_t{1});
+    /** Moves the cursor to the left 1 character, line wrapping. */
+    void backspace();
     /** Moves cursor to the start of the next nth line. */
     void cursorNextLine(std::size_t lineCount=std::size_t{1});
     /** Moves cursor to the start of the previous nth line. */
@@ -61,6 +67,11 @@ public:
     void eraseFromStart();
     /** Clears every character in the buffer. */
     void eraseAll();
+
+    void eraseLineToEnd();
+    void eraseLineFromStart();
+    void eraseLineAll();
+
     /** Returns whether the given WriteMode flag is enabled. */
     bool hasWriteMode(WriteMode w);
     /** Sets whether the given WriteMode flag is enabled. */
@@ -97,7 +108,7 @@ private:
     /** Line number of the cursor. */
     std::size_t m_cursorY {0};
     /** Bit field for options affecting how text is inserted into the buffer. */
-    WriteModes m_writeMode {None};
+    WriteModes m_writeMode {WrapLines};
     /** Array which stores the text in each line. */
     QVector<TerminalCharacter>* m_characterData;
     /** Foreground color to apply to text inserted into the buffer. */
