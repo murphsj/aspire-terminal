@@ -16,8 +16,7 @@ class TextBuffer
 {
     enum WriteMode {
         None = 0x0,
-        WrapLines = 0x1,
-        Insert = 0x2
+        Insert = 0x1
     };
     Q_DECLARE_FLAGS(WriteModes, WriteMode)
 
@@ -108,7 +107,7 @@ private:
     /** Line number of the cursor. */
     std::size_t m_cursorY {0};
     /** Bit field for options affecting how text is inserted into the buffer. */
-    WriteModes m_writeMode {WrapLines};
+    WriteModes m_writeMode {};
     /** Array which stores the text in each line. */
     QVector<TerminalCharacter>* m_characterData;
     /** Foreground color to apply to text inserted into the buffer. */

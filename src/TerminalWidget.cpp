@@ -26,7 +26,7 @@ TerminalWidget::TerminalWidget(QWidget *parent, TerminalCharacter* _c)
     m_blinkTimer.start(TerminalWidget::BlinkInterval);
 
     connect(&m_pty, &Pty::recieved, this, &TerminalWidget::recievedFdData);
-    m_pty.start(30, 30);
+    m_pty.start(50, 200);
 }
 
 void TerminalWidget::paintEvent(QPaintEvent* event)

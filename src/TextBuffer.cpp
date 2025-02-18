@@ -16,7 +16,7 @@ TextBuffer::~TextBuffer()
 TextBuffer::TextBuffer(std::size_t columns, std::size_t lines)
     :m_columns(columns)
     ,m_lines(lines)
-    ,m_writeMode(WrapLines)
+    ,m_writeMode()
 {
     m_characterData = new QVector<TerminalCharacter>[lines];
     for (int i {0}; i < m_lines; i++) {
@@ -181,7 +181,7 @@ void TextBuffer::insert(int length)
 
 void TextBuffer::write(TerminalCharacter c)
 {
-    if (hasWriteMode(WriteMode::WrapLines) && (m_cursorX + 1 > m_columns))
+    if ((m_cursorX + 1 > m_columns))
     {
         carriageReturn();
         lineFeed();
@@ -340,17 +340,9 @@ void TextBuffer::applyControlSequence(EscapeSequence cs)
         break;
     case 'h':
         // DECSET Set Private Mode
-        switch (cs.getParameter(1, -1)) {
-        case 7:
-            setWriteMode(WriteMode::WrapLines, true);   break;
-        }
         break;
     case 'l':
         // DECRST Reset Private Mode
-        switch (cs.getParameter(1, -1)) {
-        case 7:
-            setWriteMode(WriteMode::WrapLines, false);   break;
-        }
         break;
     case '`':
         // HPA Character Position Absolute
