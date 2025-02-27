@@ -9,6 +9,7 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(ZLIB REQUIRED)
 qt_standard_project_setup()
 
 file(GLOB SRCS "${CMAKE_SOURCE_DIR}/src/*.cpp")
@@ -20,6 +21,8 @@ qt_add_executable(
 
 target_link_libraries(aspireTerminalPrototype PRIVATE Qt::Widgets)
 target_link_libraries(aspireTerminalPrototype PRIVATE Qt::Core)
+target_link_libraries(aspireTerminalPrototype PRIVATE ZLIB::ZLIB)
+
 
 set_target_properties(aspireTerminalPrototype PROPERTIES
     WIN32_EXECUTABLE ON
