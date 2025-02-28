@@ -1,7 +1,7 @@
 #include <QApplication>
-#include <QPushButton>
 
 #include "src/TerminalWidget.h"
+#include "src/CompletionModel.h"
 
 int main(int argc, char **argv)
 {
@@ -9,6 +9,9 @@ int main(int argc, char **argv)
 
     TerminalWidget widget {};
     widget.show();
+
+    //CompletionModel testModel {};
+    
 
     return app.exec();
 }

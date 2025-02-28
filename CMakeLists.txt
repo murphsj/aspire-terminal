@@ -9,6 +9,7 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Test)
 find_package(ZLIB REQUIRED)
 qt_standard_project_setup()
 
@@ -21,6 +22,7 @@ qt_add_executable(
 
 target_link_libraries(aspireTerminalPrototype PRIVATE Qt::Widgets)
 target_link_libraries(aspireTerminalPrototype PRIVATE Qt::Core)
+target_link_libraries(aspireTerminalPrototype PRIVATE Qt::Test)
 target_link_libraries(aspireTerminalPrototype PRIVATE ZLIB::ZLIB)
 
 

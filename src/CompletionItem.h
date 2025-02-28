@@ -4,6 +4,7 @@ class CompletionItem
 {
 public:
     explicit CompletionItem(QString name, QString description, CompletionItem* parentItem = nullptr);
+    explicit CompletionItem();
 
     void appendChild(std::unique_ptr<CompletionItem>&& child);
 

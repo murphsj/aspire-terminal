@@ -3,14 +3,20 @@
 
 /*
  * Code here is mostly adapted from the Qt docs "Simple Tree Model Example" tutorial
- * Using a tree to store command completions isn't the most logical, since it will only ever be 1 layer deep (arguments are leafs of commands)
- * However, I wanted a way to show this hierarchy while still having arguments be part of the same searchable database
+ * Using a tree to store command completions isn't the best solution, since it will only ever be 1 layer deep (arguments are leafs of commands)
+ * However, I wanted a way to represent this hierarchy while still having arguments be part of the same searchable database
  */
 
 CompletionItem::CompletionItem(QString name, QString description, CompletionItem* parentItem)
     : m_name(name)
     , m_description(description)
     , m_parentItem(parentItem)
+{
+
+}
+
+// Root item constructor
+CompletionItem::CompletionItem()
 {
 
 }
@@ -49,4 +55,14 @@ int CompletionItem::row() const
 CompletionItem* CompletionItem::parentItem()
 {
     return m_parentItem;
+}
+
+QString CompletionItem::name() const
+{
+    return m_name;
+}
+
+QString CompletionItem::description() const
+{
+    return m_description;
 }

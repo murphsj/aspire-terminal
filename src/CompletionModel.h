@@ -12,7 +12,7 @@ class CompletionModel : public QAbstractItemModel
 public:
     Q_DISABLE_COPY_MOVE(CompletionModel)
 
-    explicit CompletionModel();
+    explicit CompletionModel(QObject* parent = nullptr);
     ~CompletionModel() override;
 
     QVariant data(const QModelIndex& index, int role) const override;
