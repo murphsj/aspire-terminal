@@ -1,4 +1,5 @@
-#include "CompletionModel.h"
+#include "ShellCompletionModel.h"
+#include "ShellCompletionItem.h"
 
 #include <QDir>
 #include <QString>
@@ -51,11 +52,11 @@ void trimGroff(QString& text) {
     text.replace("\\-", "-");
 }
 
-void readFromManpage(QString path, CompletionItem* parent)
+void readFromManpage(QString path, ShellCompletionItem* parent)
 {
     static QRegularExpression getCommandDescription {"^\\.SH DESCRIPTION(?:[\\S\\s]*?)\\.PP[\\s]?(.*?)$", 
         QRegularExpression::MultilineOption | QRegularExpression::CaseInsensitiveOption};
-    static QRegularExpression getArgumentInfo {"^\\.TP\\s((?:\\\\fB)?\\\\-.*?)\\n([\\S\\s]*?)(?=\\.TP|\\.SH)",
+    static QRegularExpression getArgumentInfo {"^\\.TP\\s((?:\\\\fB)?\\\\-.*?)\\n([\\S\\s]*?)(?=\\.TP|\\.SH|\\.PP)",
                 QRegularExpression::MultilineOption | QRegularExpression::CaseInsensitiveOption};
     QFileInfo file {path};
 
@@ -64,8 +65,7 @@ void readFromManpage(QString path, CompletionItem* parent)
     QRegularExpressionMatch descMatch = getCommandDescription.match(page);
     QString commandDescription = descMatch.captured(1);
 
-    std::unique_ptr<CompletionItem> commandItem = std::make_unique<CompletionItem>(commandName, commandDescription, parent);
-    
+    std::unique_ptr<ShellCompletionItem> commandItem = std::make_unique<ShellCompletionItem>(commandName, commandDescription, parent);
 
     QRegularExpressionMatchIterator argMatches = getArgumentInfo.globalMatch(page);
     qDebug() << page;
@@ -75,13 +75,13 @@ void readFromManpage(QString path, CompletionItem* parent)
         trimGroff(argumentName);
         trimGroff(argumentDescription);
 
-        commandItem->appendChild(std::make_unique<CompletionItem>(argumentName, argumentDescription, commandItem.get()));
+        commandItem->appendChild(std::make_unique<ShellCompletionItem>(argumentName, argumentDescription, commandItem.get()));
     }
 
     parent->appendChild(std::move(commandItem));
 }
 
-void CompletionModel::setupModelData(QStringList paths, CompletionItem* parent)
+void ShellCompletionModel::setupModelData(QStringList paths, ShellCompletionItem* parent)
 {
     // TODO: use given paths
     readFromManpage(QStringLiteral("/usr/share/man/man1/cat.1.gz"), parent);
@@ -89,23 +89,23 @@ void CompletionModel::setupModelData(QStringList paths, CompletionItem* parent)
     readFromManpage(QStringLiteral("/usr/share/man/man1/whatis.1.gz"), parent);
 }
 
-CompletionModel::CompletionModel(QObject* parent)
+ShellCompletionModel::ShellCompletionModel(QObject* parent)
     : QAbstractItemModel(parent)
-    , rootItem(std::make_unique<CompletionItem>())
+    , rootItem(std::make_unique<ShellCompletionItem>())
 {
     setupModelData(getAllManpageFiles(), rootItem.get());
 }
 
-CompletionModel::~CompletionModel() = default;
+ShellCompletionModel::~ShellCompletionModel() = default;
 
 
-QModelIndex CompletionModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex ShellCompletionModel::index(int row, int column, const QModelIndex& parent) const
 {
     if (!hasIndex(row, column, parent))
         return {};
 
-    CompletionItem* parentItem = parent.isValid()
-        ? static_cast<CompletionItem*>(parent.internalPointer())
+    ShellCompletionItem* parentItem = parent.isValid()
+        ? static_cast<ShellCompletionItem*>(parent.internalPointer())
         : rootItem.get();
     
     if (auto *childItem = parentItem->child(row))
@@ -114,51 +114,51 @@ QModelIndex CompletionModel::index(int row, int column, const QModelIndex& paren
     return {};
 }
 
-QModelIndex CompletionModel::parent(const QModelIndex &index) const
+QModelIndex ShellCompletionModel::parent(const QModelIndex &index) const
 {
     if (!index.isValid())
         return {};
 
-    auto *childItem = static_cast<CompletionItem*>(index.internalPointer());
-    CompletionItem *parentItem = childItem->parentItem();
+    auto *childItem = static_cast<ShellCompletionItem*>(index.internalPointer());
+    ShellCompletionItem *parentItem = childItem->parentItem();
 
     return parentItem != rootItem.get()
         ? createIndex(parentItem->row(), 0, parentItem) : QModelIndex {};
 }
 
-int CompletionModel::rowCount(const QModelIndex& parent) const
+int ShellCompletionModel::rowCount(const QModelIndex& parent) const
 {
     if (parent.column() > 0) return 0;
-    const CompletionItem* parentItem = parent.isValid()
-        ? static_cast<const CompletionItem*>(parent.internalPointer())
+    const ShellCompletionItem* parentItem = parent.isValid()
+        ? static_cast<const ShellCompletionItem*>(parent.internalPointer())
         : rootItem.get();
 
     return parentItem->childCount();
 }
 
-int CompletionModel::columnCount(const QModelIndex& parent) const
+int ShellCompletionModel::columnCount(const QModelIndex& parent) const
 {
     Q_UNUSED(parent)
 
     return 2;
 }
 
-QVariant CompletionModel::data(const QModelIndex& index, int role) const
+QVariant ShellCompletionModel::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid() || role != Qt::DisplayRole)
         return {};
 
-    const auto *item = static_cast<const CompletionItem*>(index.internalPointer());
+    const auto *item = static_cast<const ShellCompletionItem*>(index.internalPointer());
     return index.column() == 0 ? item->name() : item->description();
 }
 
-Qt::ItemFlags CompletionModel::flags(const QModelIndex& index) const
+Qt::ItemFlags ShellCompletionModel::flags(const QModelIndex& index) const
 {
     return index.isValid()
         ? QAbstractItemModel::flags(index) : Qt::ItemFlags(Qt::NoItemFlags);
 }
 
-QVariant CompletionModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant ShellCompletionModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     Q_UNUSED(section)
     Q_UNUSED(orientation)

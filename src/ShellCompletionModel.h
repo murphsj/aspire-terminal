@@ -1,19 +1,19 @@
-#ifndef ASPIRE_TERMINAL_COMPLETION_MODEL
-#define ASPIRE_TERMINAL_COMPLETION_MODEL
+#ifndef ASPIRE_TERMINAL_SHELL_COMPLETION_MODEL
+#define ASPIRE_TERMINAL_SHELL_COMPLETION_MODEL
 
 #include <QAbstractItemModel>
 #include <QStringView>
-#include "CompletionItem.h"
+#include "ShellCompletionItem.h"
 
-class CompletionModel : public QAbstractItemModel
+class ShellCompletionModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
-    Q_DISABLE_COPY_MOVE(CompletionModel)
+    Q_DISABLE_COPY_MOVE(ShellCompletionModel)
 
-    explicit CompletionModel(QObject* parent = nullptr);
-    ~CompletionModel() override;
+    explicit ShellCompletionModel(QObject* parent = nullptr);
+    ~ShellCompletionModel() override;
 
     QVariant data(const QModelIndex& index, int role) const override;
     Qt::ItemFlags flags (const QModelIndex& index) const override;
@@ -24,9 +24,9 @@ public:
     int columnCount(const QModelIndex& parent = {}) const override;
 
 private:
-    static void setupModelData(QStringList paths, CompletionItem* parent);
+    static void setupModelData(QStringList paths, ShellCompletionItem* parent);
 
-    std::unique_ptr<CompletionItem> rootItem;
+    std::unique_ptr<ShellCompletionItem> rootItem;
 };
 
 #endif

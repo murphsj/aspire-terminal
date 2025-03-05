@@ -1,13 +1,14 @@
 #include <QString>
-#include "CompletionItem.h"
+#include "ShellCompletionItem.h"
 
 /*
  * Code here is mostly adapted from the Qt docs "Simple Tree Model Example" tutorial
  * Using a tree to store command completions isn't the best solution, since it will only ever be 1 layer deep (arguments are leafs of commands)
  * However, I wanted a way to represent this hierarchy while still having arguments be part of the same searchable database
+ * This also plays nice with QCompleter since it can handle searching in 'sub-trees'
  */
 
-CompletionItem::CompletionItem(QString name, QString description, CompletionItem* parentItem)
+ShellCompletionItem::ShellCompletionItem(QString name, QString description, ShellCompletionItem* parentItem)
     : m_name(name)
     , m_description(description)
     , m_parentItem(parentItem)
@@ -16,31 +17,31 @@ CompletionItem::CompletionItem(QString name, QString description, CompletionItem
 }
 
 // Root item constructor
-CompletionItem::CompletionItem()
+ShellCompletionItem::ShellCompletionItem()
 {
 
 }
 
-void CompletionItem::appendChild(std::unique_ptr<CompletionItem>&& child)
+void ShellCompletionItem::appendChild(std::unique_ptr<ShellCompletionItem>&& child)
 {
     m_childItems.push_back(std::move(child));
 }
 
-CompletionItem* CompletionItem::child(int row)
+ShellCompletionItem* ShellCompletionItem::child(int row)
 {
     return row >= 0 && row < childCount() ? m_childItems.at(row).get() : nullptr;
 }
 
-int CompletionItem::childCount() const
+int ShellCompletionItem::childCount() const
 {
     return static_cast<int>(m_childItems.size());
 }
 
-int CompletionItem::row() const
+int ShellCompletionItem::row() const
 {
     if (m_parentItem == nullptr) return 0;
     const auto it = std::find_if(m_parentItem->m_childItems.cbegin(), m_parentItem->m_childItems.cend(),
-        [this](const std::unique_ptr<CompletionItem>& completionItem) {
+        [this](const std::unique_ptr<ShellCompletionItem>& completionItem) {
             return completionItem.get() == this;
         }
     );
@@ -52,17 +53,17 @@ int CompletionItem::row() const
     return -1;
 }
 
-CompletionItem* CompletionItem::parentItem()
+ShellCompletionItem* ShellCompletionItem::parentItem()
 {
     return m_parentItem;
 }
 
-QString CompletionItem::name() const
+QString ShellCompletionItem::name() const
 {
     return m_name;
 }
 
-QString CompletionItem::description() const
+QString ShellCompletionItem::description() const
 {
     return m_description;
 }

@@ -2,7 +2,7 @@
 #include <QTreeView>
 
 #include "src/TerminalWidget.h"
-#include "src/CompletionModel.h"
+#include "src/ShellCompletionModel.h"
 
 int main(int argc, char **argv)
 {
