@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QTreeView>
 
 #include "src/TerminalWidget.h"
 #include "src/CompletionModel.h"
@@ -10,7 +11,15 @@ int main(int argc, char **argv)
     TerminalWidget widget {};
     widget.show();
 
-    //CompletionModel testModel {};
+    /**
+
+    CompletionModel completion {};
+
+    QTreeView testView {};
+    testView.setModel(&completion);
+    testView.show();
+
+    */
     
 
     return app.exec();

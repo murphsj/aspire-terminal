@@ -24,7 +24,7 @@ public:
     int columnCount(const QModelIndex& parent = {}) const override;
 
 private:
-    static void setupModelData(QStringList paths, CompletionModel* parent);
+    static void setupModelData(QStringList paths, CompletionItem* parent);
 
     std::unique_ptr<CompletionItem> rootItem;
 };

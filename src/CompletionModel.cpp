@@ -1,7 +1,13 @@
 #include "CompletionModel.h"
+
 #include <QDir>
+#include <QString>
+#include <QStringView>
+#include <QList>
+#include <QRegularExpression>
 #include <qglobal.h>
-#include <zlib.h>
+
+#include "Compression.h"
 
 QStringList getManpagePaths()
 {
@@ -26,8 +32,10 @@ QStringList getAllManpageFiles()
     for (QString filepath : paths) {
         for (QString section : manSections) {
             QDir directory {filepath + QDir::separator() + section};
-            QStringList foundFiles = directory.entryList(entryFilter);
-            result.append(foundFiles);
+            QFileInfoList foundFiles = directory.entryInfoList(entryFilter);
+            for (QFileInfo file : foundFiles) {
+                result.append(file.absoluteFilePath());
+            }
         }
     }
 
@@ -35,31 +43,61 @@ QStringList getAllManpageFiles()
     return result;
 }
 
-void readFromManpage(QString path)
+void trimGroff(QString& text) {
+    // \f is followed by a character to do certain formatting macros, most notably bold/unbold
+    static QRegularExpression groffEscapes {"\\\\f."};
+    text.replace(groffEscapes, "");
+    // For some reason dashes are escaped in roff
+    text.replace("\\-", "-");
+}
+
+void readFromManpage(QString path, CompletionItem* parent)
 {
-    // Copy QString to a C-style string so zlib can use it
-    char* cPath;
-    std::string fname = path.toStdString();
-    cPath = new char[fname.size() + 1];
-    strcpy(cPath, fname.c_str());
+    static QRegularExpression getCommandDescription {"^\\.SH DESCRIPTION(?:[\\S\\s]*?)\\.PP[\\s]?(.*?)$", 
+        QRegularExpression::MultilineOption | QRegularExpression::CaseInsensitiveOption};
+    static QRegularExpression getArgumentInfo {"^\\.TP\\s((?:\\\\fB)?\\\\-.*?)\\n([\\S\\s]*?)(?=\\.TP|\\.SH)",
+                QRegularExpression::MultilineOption | QRegularExpression::CaseInsensitiveOption};
+    QFileInfo file {path};
 
-    gzFile file = gzopen(cPath, "rb");
+    QString commandName = file.baseName();
+    QString page = Compression::readGzipFile(path);
+    QRegularExpressionMatch descMatch = getCommandDescription.match(page);
+    QString commandDescription = descMatch.captured(1);
 
-    char readBuffer[65536];
-    ssize_t len {gzread(file, readBuffer, 65536)};
-    QString contents {readBuffer};
+    std::unique_ptr<CompletionItem> commandItem = std::make_unique<CompletionItem>(commandName, commandDescription, parent);
+    
 
-    qDebug() << contents;
+    QRegularExpressionMatchIterator argMatches = getArgumentInfo.globalMatch(page);
+    qDebug() << page;
+    for (QRegularExpressionMatch argumentInfo : argMatches) {
+        QString argumentName {argumentInfo.captured(1)};
+        QString argumentDescription {argumentInfo.captured(2)};
+        trimGroff(argumentName);
+        trimGroff(argumentDescription);
+
+        commandItem->appendChild(std::make_unique<CompletionItem>(argumentName, argumentDescription, commandItem.get()));
+    }
+
+    parent->appendChild(std::move(commandItem));
+}
+
+void CompletionModel::setupModelData(QStringList paths, CompletionItem* parent)
+{
+    // TODO: use given paths
+    readFromManpage(QStringLiteral("/usr/share/man/man1/cat.1.gz"), parent);
+    readFromManpage(QStringLiteral("/usr/share/man/man1/ls.1.gz"), parent);
+    readFromManpage(QStringLiteral("/usr/share/man/man1/whatis.1.gz"), parent);
 }
 
 CompletionModel::CompletionModel(QObject* parent)
     : QAbstractItemModel(parent)
     , rootItem(std::make_unique<CompletionItem>())
 {
-    setupModelData(getAllManpageFiles(), this);
+    setupModelData(getAllManpageFiles(), rootItem.get());
 }
 
 CompletionModel::~CompletionModel() = default;
+
 
 QModelIndex CompletionModel::index(int row, int column, const QModelIndex& parent) const
 {
@@ -126,9 +164,4 @@ QVariant CompletionModel::headerData(int section, Qt::Orientation orientation, i
     Q_UNUSED(orientation)
     Q_UNUSED(role)
     return QVariant{};
-}
-
-void CompletionModel::setupModelData(QStringList paths, CompletionModel* parent)
-{
-
 }
