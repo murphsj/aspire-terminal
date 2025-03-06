@@ -4,7 +4,9 @@
 #include <QObject>
 #include <QSocketNotifier>
 
+#include <bfd.h>
 #include <cstddef> // for std::size_t
+#include <string_view>
 #include <qtmetamacros.h>
 #include <sys/types.h>
 
@@ -32,6 +34,8 @@ public:
     /* Sends the given character(s) into the input of the Pty. */
     int send(const char* sequence, std::size_t length);
 
+    std::string_view prompt();
+
 signals:
     /* Sent when the terminal application gives output. */
     void recieved(std::string_view output);
@@ -46,12 +50,15 @@ private:
     void openpt();
     /* Sends a size change signal to the master file descriptor. */
     void setSize(std::size_t width, std::size_t height);
+    /* Initializes prompt address */
+    void getPromptAddr(const char* shellName);
     /* Creates a child process and executes the shell on it. Returns whether or not this is the child process. */
     bool forkpt(const char* shellName);
 
     QSocketNotifier m_fdReader;
     pid_t m_processId {0};
     int m_fileDescriptor;
+    bfd_vma m_promptAddr;
 }; 
 
 #endif

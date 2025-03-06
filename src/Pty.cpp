@@ -4,13 +4,15 @@
 #include <csignal>
 #include <cstdlib>
 #include <qglobal.h>
-#include <qsocketnotifier.h>
 #include <sys/ioctl.h>
+#include <sys/ptrace.h>
 #include <signal.h> // for kill(), SIGKILL
 #include <termios.h>
 #include <unistd.h> // for read(), write()
 #include <fcntl.h>
 #include <qdebug.h>
+#include <bfd.h>
+#include <sstream>
 
 #include <QSocketNotifier>
 
@@ -64,6 +66,34 @@ void Pty::setSize(std::size_t width, std::size_t height)
     }
 }
 
+void Pty::getPromptAddr(const char* shellName)
+{
+    // libBFD code based on https://pramode.net/articles/lfy/ptrace/pramode.html
+    bfd_init();
+    bfd* abfd {bfd_openr(shellName, nullptr)};
+    if (abfd == 0) {
+        qFatal("bfd_openr() failed");
+    }
+    bfd_check_format(abfd, bfd_object);
+    long size {bfd_get_symtab_upper_bound(abfd)};
+    if (size == 0) {
+        qFatal("bfd_get_symtab_upper_bound() failed");
+    }
+
+    asymbol** symbolTable = new asymbol*[size];
+    long symbolCount {bfd_canonicalize_symtab(abfd, symbolTable)};
+    if (symbolCount == 0) {
+        qFatal("bfd_canonicalize_symtab() failed");
+    }
+
+    for (int i = 0; i < symbolCount; i++) {
+        if (strcmp(bfd_asymbol_name(symbolTable[i]), "rl_line_buffer") == 0) {
+            m_promptAddr = bfd_asymbol_value(symbolTable[i]);
+            return;
+        }
+    }
+}
+
 bool Pty::forkpt(const char* shellName)
 {
     char* slaveName {ptsname(m_fileDescriptor)};
@@ -87,6 +117,9 @@ bool Pty::forkpt(const char* shellName)
         dup2(slaveFd, STDERR_FILENO);
         close(slaveFd);
 
+        // Configure this process so that the parent can trace it
+        ptrace(PTRACE_TRACEME);
+
         // Spawn the shell in interactive mode
         execl(shellName, shellName, "-l", "-i", nullptr);
 
@@ -98,6 +131,27 @@ bool Pty::forkpt(const char* shellName)
     } else {
         qFatal("fork() failed");
     }
+}
+
+std::string readMemoryString(pid_t child, bfd_vma addr)
+{
+    std::ostringstream stream {};
+    std::size_t readPosition {0};
+    while (true) {
+        // ptrace gives the first 8 bytes of the memory address as a long
+        // We convert to char* so that sstream handles null terminating
+        const long data {ptrace(PTRACE_PEEKDATA, child, addr)};
+        stream << reinterpret_cast<const char*>(&data);
+        // Stop reading once there's a null terminator
+        if (memchr(&data, '\0', sizeof(data))) break;
+    }
+
+    return stream.str();
+}
+
+std::string_view Pty::prompt()
+{
+    return std::string_view{readMemoryString(m_processId, m_promptAddr)};
 }
 
 void Pty::start(std::size_t width, std::size_t height, const char* shellName)
