@@ -39,8 +39,6 @@ QStringList getAllManpageFiles()
             }
         }
     }
-
-    qDebug() << result;
     return result;
 }
 
@@ -68,7 +66,7 @@ void readFromManpage(QString path, ShellCompletionItem* parent)
     std::unique_ptr<ShellCompletionItem> commandItem = std::make_unique<ShellCompletionItem>(commandName, commandDescription, parent);
 
     QRegularExpressionMatchIterator argMatches = getArgumentInfo.globalMatch(page);
-    qDebug() << page;
+
     for (QRegularExpressionMatch argumentInfo : argMatches) {
         QString argumentName {argumentInfo.captured(1)};
         QString argumentDescription {argumentInfo.captured(2)};
@@ -77,6 +75,8 @@ void readFromManpage(QString path, ShellCompletionItem* parent)
 
         commandItem->appendChild(std::make_unique<ShellCompletionItem>(argumentName, argumentDescription, commandItem.get()));
     }
+
+    commandItem->appendChild(std::make_unique<ShellCompletionItem>("TEST", "test argument", commandItem.get()));
 
     parent->appendChild(std::move(commandItem));
 }

@@ -46,6 +46,29 @@ std::size_t TextBuffer::getCursorY()
     return m_cursorY;
 }
 
+QString TextBuffer::getPrompt()
+{
+    constexpr static QChar promptEnd {' '};
+    QString str;
+
+    for (int y = m_cursorY; y > 0; --y) {
+        QVector<TerminalCharacter>& line = m_characterData[y];
+
+        for (int x = m_cursorX-1; x > 0; --x) {
+            TerminalCharacter c {line.at(x)};
+
+            if (c.character == promptEnd) {
+                break;
+            }
+
+            str.insert(0, c.character);
+            
+        }
+    }
+
+    return str;
+}
+
 void TextBuffer::setCursorPosition(std::size_t x, std::size_t y)
 {
     setCursorX(x); setCursorY(y);
@@ -234,6 +257,8 @@ void TextBuffer::resetAttributes()
     // It might be better to clear this in-place instead of making a new blank QFlag
     m_attributes = {};
 }
+
+
 
 void TextBuffer::applyCharAttribute(int id)
 {

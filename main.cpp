@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QTreeView>
+#include <QAbstractItemModelTester>
 
 #include "src/TerminalWidget.h"
 #include "src/ShellCompletionModel.h"
@@ -11,16 +12,11 @@ int main(int argc, char **argv)
     TerminalWidget widget {};
     widget.show();
 
-    /**
+    ShellCompletionModel completion {};
+    QTreeView tree {};
+    tree.setModel(&completion);
 
-    CompletionModel completion {};
-
-    QTreeView testView {};
-    testView.setModel(&completion);
-    testView.show();
-
-    */
-    
+    tree.show();
 
     return app.exec();
 }

@@ -6,6 +6,7 @@
 #include <qglobal.h>
 #include <sys/ioctl.h>
 #include <sys/ptrace.h>
+#include <sys/wait.h>
 #include <signal.h> // for kill(), SIGKILL
 #include <termios.h>
 #include <unistd.h> // for read(), write()
@@ -105,6 +106,7 @@ bool Pty::forkpt(const char* shellName)
     // fork() spawns a new process and returns the pid on the parent but 0 on the child,
     pid_t slavePid {fork()};
     if (slavePid == 0) {
+        
         // We're in the child process - close the master fd and pipe input to stdin/out/err
         close(m_fileDescriptor);
         setsid();
@@ -117,14 +119,16 @@ bool Pty::forkpt(const char* shellName)
         dup2(slaveFd, STDERR_FILENO);
         close(slaveFd);
 
-        // Configure this process so that the parent can trace it
-        ptrace(PTRACE_TRACEME);
+        //ptrace(PTRACE_TRACEME, 0, NULL, NULL);
 
         // Spawn the shell in interactive mode
         execl(shellName, shellName, "-l", "-i", nullptr);
 
-        return false;
+        //execl("/home/murphsj/aspire/qt-test/aspireTerminalPrototype/ptrace_child_test", "ptrace_child_test", nullptr);
+
+        exit(0);
     } else if (slaveFd >= 0) {
+        m_processId = slavePid;
         close(slaveFd);
 
         return true;
@@ -135,16 +139,33 @@ bool Pty::forkpt(const char* shellName)
 
 std::string readMemoryString(pid_t child, bfd_vma addr)
 {
+    kill(child, SIGSTOP);
+    int status;
+    waitpid(child, &status, WUNTRACED | WNOHANG);
+    if (!WIFSTOPPED(status)) {
+        qDebug() << "Child was not stopped";
+        //return "";
+    }
+
+    // ptrace can only read 8 bytes of memory at a time, so to read a C string we need to read repeatedly until we find a null terminator
     std::ostringstream stream {};
     std::size_t readPosition {0};
     while (true) {
-        // ptrace gives the first 8 bytes of the memory address as a long
-        // We convert to char* so that sstream handles null terminating
-        const long data {ptrace(PTRACE_PEEKDATA, child, addr)};
+        const long data {ptrace(PTRACE_PEEKDATA, child, &addr + readPosition)};
+
+        if (data == -1) {
+            perror("PTRACE_PEEKDATA");
+            break;
+        }
+        // We convert to char* so that anything after the null terminator doesn't get added to the stream
         stream << reinterpret_cast<const char*>(&data);
         // Stop reading once there's a null terminator
         if (memchr(&data, '\0', sizeof(data))) break;
+
+        readPosition += 4;
     }
+
+    if (ptrace(PTRACE_CONT, child, 1, NULL) == -1) perror("PTRACE_CONT");
 
     return stream.str();
 }

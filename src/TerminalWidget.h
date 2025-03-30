@@ -2,6 +2,7 @@
 #define ASPIRE_TERMINAL_TERMINAL_WIDGET
 
 #include <chrono>
+#include <qstringlistmodel.h>
 #include <string_view>
 
 #include <QPainter>
@@ -10,6 +11,8 @@
 #include <qwidget.h>
 
 #include "EscapeSequence.h"
+#include "ShellCompletionModel.h"
+#include "ShellCompleter.h"
 #include "Pty.h"
 #include "TextBuffer.h"
 
@@ -20,6 +23,8 @@ class TerminalWidget: public QWidget
 public:
     constexpr static std::chrono::milliseconds BlinkInterval { 500 };
     TerminalWidget(QWidget* parent = nullptr, TerminalCharacter* characterData = nullptr);
+
+    void updateCompletion();
 
 public slots:
     /** Activated when data is written to the terminal. */
@@ -34,6 +39,7 @@ private:
     void paintBackground(QPainter& painter, QRect& region);
     void paintAllCharacters(QPainter& painter, QRect& region);
     void paintCharacter(QPainter& painter, QRect& region, TerminalCharacter c, bool drawCursorHighlight);
+    QRect getCharRect(std::size_t cols, std::size_t rows);
     /**
      * Reads one complete character/control sequence from the string at the given index, parses it, and processess the result.
      * Returns the amount of characters read.
@@ -43,6 +49,8 @@ private:
     ssize_t parseCharacter(std::string_view output, ssize_t index);
     void applyEscapeSequence(EscapeSequence esc);
     void applyControlSequence(EscapeSequence cs);
+    ShellCompletionModel* m_completionModel;
+    QCompleter* m_completer;
     QTimer m_blinkTimer;
     bool m_blinkOn;
     QFont m_font;
