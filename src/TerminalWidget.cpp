@@ -14,44 +14,6 @@
 #include <qnamespace.h>
 #include <qwidget.h>
 
-QAbstractItemModel* testModel() {
-    QFile file("test.txt");
-    if (!file.open(QFile::ReadOnly))
-        return new QStringListModel();
-
-    QStandardItemModel *model = new QStandardItemModel();
-    QList<QStandardItem *> parents(10);
-    parents[0] = model->invisibleRootItem();
-
-    QRegularExpression re("^\\s+");
-    while (!file.atEnd()) {
-        const QString line = QString::fromUtf8(file.readLine());
-        const QString trimmedLine = line.trimmed();
-        if (trimmedLine.isEmpty())
-            continue;
-
-        const QRegularExpressionMatch match = re.match(line);
-        int nonws = match.capturedStart();
-        int level = 0;
-        if (nonws == -1) {
-            level = 0;
-        } else {
-            const int capLen = match.capturedLength();
-            level = capLen / 4;
-        }
-
-        if (level + 1 >= parents.size())
-            parents.resize(parents.size() * 2);
-
-        QStandardItem *item = new QStandardItem;
-        item->setText(trimmedLine);
-        parents[level]->appendRow(item);
-        parents[level + 1] = item;
-    }
-
-    return model;
-}
-
 TerminalWidget::TerminalWidget(QWidget* parent, TerminalCharacter* _c)
     : QWidget(parent)
     , m_font("Monospace")
@@ -74,12 +36,13 @@ TerminalWidget::TerminalWidget(QWidget* parent, TerminalCharacter* _c)
 
     m_completionModel = new ShellCompletionModel(this);
 
-    m_completer = new QCompleter(testModel(), this);
+    m_completer = new ShellCompleter(m_completionModel, this);
     m_completer->setWidget(this);
+    
     m_completer->setCompletionColumn(0);
     m_completer->setCompletionRole(Qt::DisplayRole);
     m_completer->setCaseSensitivity(Qt::CaseSensitivity::CaseInsensitive);
-    m_completer->setCompletionMode(QCompleter::PopupCompletion);
+    //m_completer->setCompletionMode(QCompleter::PopupCompletion);
 }
 
 QRect TerminalWidget::getCharRect(std::size_t charX, std::size_t charY)
@@ -104,8 +67,6 @@ void TerminalWidget::keyPressEvent(QKeyEvent* event)
     if (!event->text().isEmpty()) {
         const char* inputText { event->text().toUtf8().constData() };
         m_pty.send(inputText, event->text().length());
-        updateCompletion();
-        qDebug() << m_completer->completionPrefix();
         update();
     }
 }
@@ -119,9 +80,9 @@ void TerminalWidget::blinkEvent()
 void TerminalWidget::updateCompletion() {
     m_completer->setCompletionPrefix(m_buffer.getPrompt());
     m_completer->setCurrentRow(0);
-    QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()-1) };
+    QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()+1) };
     rect.setSize(QSize(200, 30));
-    m_completer->complete();
+    m_completer->complete(rect);
 }
 
 void TerminalWidget::paintBackground(QPainter& painter, QRect& region)
@@ -180,6 +141,7 @@ void TerminalWidget::recievedFdData(std::string_view output)
         i = newIndex;
     }
 
+    updateCompletion();
     update();
 }
 
