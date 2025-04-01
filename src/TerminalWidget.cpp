@@ -10,6 +10,7 @@
 #include <QStringListModel>
 #include <QStandardItemModel>
 #include <QAbstractItemModel>
+#include <QAbstractItemView>
 #include <cstddef>
 #include <qnamespace.h>
 #include <qwidget.h>
@@ -78,9 +79,15 @@ void TerminalWidget::blinkEvent()
 }
 
 void TerminalWidget::updateCompletion() {
-    m_completer->setCompletionPrefix(m_buffer.getPrompt());
+    QString prompt {m_buffer.getCompletion()};
+    qDebug() << m_buffer.getCompletion();
+    if (prompt.isEmpty()) {
+        m_completer->popup()->hide();
+        return;
+    }
+    m_completer->setCompletionPrefix(prompt);
     m_completer->setCurrentRow(0);
-    QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()+1) };
+    QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()) };
     rect.setSize(QSize(200, 30));
     m_completer->complete(rect);
 }

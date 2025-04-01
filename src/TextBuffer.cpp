@@ -1,7 +1,11 @@
+#include <qdebug.h>
+#include <QString>
+#include <QVector>
+#include <QRegularExpression>
+
 #include "TextBuffer.h"
 #include "EscapeSequence.h"
 #include "TerminalColor.h"
-#include <qdebug.h>
 
 TextBuffer::TextBuffer(): TextBuffer(1, 1)
 {
@@ -48,7 +52,7 @@ std::size_t TextBuffer::getCursorY()
 
 QString TextBuffer::getPrompt()
 {
-    constexpr static QChar promptEnd {' '};
+    constexpr static QChar promptEnd {'$'};
     QString str;
 
     for (int y = m_cursorY; y > 0; --y) {
@@ -67,6 +71,25 @@ QString TextBuffer::getPrompt()
     }
 
     return str;
+}
+
+QString TextBuffer::getCompletion()
+{
+    static QRegularExpression whitespace {"\\s+"};
+    QStringList promptWords { getPrompt().split(whitespace) };
+
+    qDebug() << "prompt:" + getPrompt();
+
+    if (promptWords.length() == 0) return QStringLiteral("");
+    if (promptWords.length() == 1) {
+        if (promptWords.at(promptWords.length() - 1) == QStringLiteral(" ")) {
+            return promptWords.at(0) + QStringLiteral(".");
+        } else {
+            return promptWords.at(0);
+        }
+    }
+    return promptWords.at(0) + QStringLiteral(".") + promptWords.at(promptWords.length() - 1);
+
 }
 
 void TextBuffer::setCursorPosition(std::size_t x, std::size_t y)

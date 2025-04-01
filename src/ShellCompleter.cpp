@@ -19,8 +19,7 @@ ShellCompleter::ShellCompleter(ShellCompletionModel* model, QObject* parent)
 
 QStringList ShellCompleter::splitPath(const QString& path) const
 {
-    static QRegularExpression whitespace {"\\s+"};
-    qDebug() << "splitPath(): " << path;
+    
     // TODO: include command name if present so arguments can be shown
     return path.split(QLatin1String("."));
 };
