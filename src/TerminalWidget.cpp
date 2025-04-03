@@ -30,12 +30,6 @@ TerminalWidget::TerminalWidget(QWidget* parent, TerminalCharacter* _c)
     m_font.setStyleHint(QFont::Monospace);
     setFocusPolicy(Qt::StrongFocus);
 
-    connect(&m_blinkTimer, &QTimer::timeout, this, &TerminalWidget::blinkEvent);
-    m_blinkTimer.start(TerminalWidget::BlinkInterval);
-
-    connect(&m_pty, &Pty::recieved, this, &TerminalWidget::recievedFdData);
-    m_pty.start(50, 200);
-
     m_completionModel = new ShellCompletionModel(this);
 
     m_completer = new ShellCompleter(m_completionModel, this);
@@ -45,6 +39,14 @@ TerminalWidget::TerminalWidget(QWidget* parent, TerminalCharacter* _c)
     m_completer->setCompletionRole(Qt::DisplayRole);
     m_completer->setCaseSensitivity(Qt::CaseSensitivity::CaseInsensitive);
     //m_completer->setCompletionMode(QCompleter::PopupCompletion);
+
+    connect(&m_blinkTimer, &QTimer::timeout, this, &TerminalWidget::blinkEvent);
+    m_blinkTimer.start(TerminalWidget::BlinkInterval);
+
+    connect(&m_pty, &Pty::recieved, this, &TerminalWidget::recievedFdData);
+    m_pty.start(50, 200);
+
+    connect(m_completer, QOverload<const QModelIndex&>::of(&QCompleter::activated), this, &TerminalWidget::completionActivated);
 }
 
 QRect TerminalWidget::getCharRect(std::size_t charX, std::size_t charY)
@@ -79,7 +81,8 @@ void TerminalWidget::blinkEvent()
     update();
 }
 
-void TerminalWidget::updateCompletion() {
+void TerminalWidget::updateCompletion()
+{
     QString prompt {m_buffer.getCompletion(m_buffer.getPrompt())};
     if (prompt.isEmpty()) {
         m_completer->popup()->hide();
@@ -88,10 +91,24 @@ void TerminalWidget::updateCompletion() {
     m_completer->setCompletionPrefix(prompt);
     m_completer->setCurrentRow(0);
     QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()) };
-    qDebug() << rect.topLeft();
     rect.setWidth(m_completer->popup()->sizeHintForColumn(0) + m_completer->popup()->verticalScrollBar()->sizeHint().width());
     m_completer->complete(rect);
     m_completer->popup()->move(rect.topLeft());
+}
+
+void TerminalWidget::completionActivated(const QModelIndex& completion)
+{
+    static QRegularExpression whitespace {"\\s+"};
+
+    QString name { completion.data().toString() };
+    QString prompt { m_buffer.getPrompt() };
+    if (!prompt.endsWith(' ')) {
+        QStringList promptWords { prompt.split(whitespace, Qt::SkipEmptyParts) };
+        QString lastWord { promptWords.at(promptWords.length()-1) };
+        for (int i = 0; i < lastWord.length(); i++) m_pty.send("\b", 1);
+    }
+    
+    m_pty.send(name.toUtf8().constData(), name.length());
 }
 
 void TerminalWidget::paintBackground(QPainter& painter, QRect& region)

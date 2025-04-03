@@ -50,6 +50,20 @@ std::size_t TextBuffer::getCursorY()
     return m_cursorY;
 }
 
+TerminalCharacter TextBuffer::charAt(std::size_t x, std::size_t y)
+{
+    if (x < m_columns && y < m_lines) {
+        return m_characterData[x][y];
+    } else {
+        return TerminalCharacter{};
+    }
+};
+
+TerminalCharacter TextBuffer::charAtCursor()
+{
+    return charAt(m_cursorX, m_cursorY);
+};
+
 QString TextBuffer::getPrompt()
 {
     constexpr static QChar promptEnd {'$'};
@@ -124,12 +138,12 @@ void TextBuffer::cursorUp(std::size_t lineCount)
 
 void TextBuffer::cursorRight(std::size_t charCount)
 {
-    m_cursorX = qMax(m_cursorX + charCount, m_columns-1);
+    m_cursorX = qMin(m_cursorX + charCount, m_columns-1);
 }
 
 void TextBuffer::cursorLeft(std::size_t charCount)
 {
-    m_cursorX = qMin(m_cursorX - charCount, std::size_t { 0 });
+    m_cursorX = qMax(m_cursorX - charCount, std::size_t { 0 });
 }
 
 void TextBuffer::backspace()
@@ -166,6 +180,8 @@ void TextBuffer::fillInRange(TerminalCharacter c, std::size_t startX, std::size_
 {
     std::size_t startLoc {(startY * m_columns) + startX};
     std::size_t endLoc {(endY * m_columns) + endX};
+    qDebug() << startX << endX << startY << endY;
+    qDebug() << m_cursorX;
     assert(endLoc >= startLoc);
 
     for (int y = startY; y <= endY; ++y) {

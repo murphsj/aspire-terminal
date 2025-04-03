@@ -40,6 +40,9 @@ public:
     std::size_t getCursorX();
     /** Returns which line the cursor is on. */
     std::size_t getCursorY();
+    /** Gets the character at a given buffer position. */
+    TerminalCharacter charAt(std::size_t x, std::size_t y);
+    TerminalCharacter charAtCursor();
     /** Attempts to find the user-entered string at the cursor in the Bash shell. */
     QString getPrompt();
     /** Turn prompt text into a string to be used for QCompleter */

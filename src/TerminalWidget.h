@@ -29,6 +29,8 @@ public:
 public slots:
     /** Activated when data is written to the terminal. */
     void recievedFdData(std::string_view output);
+    /** Activated when a completion option is selected. */
+    void completionActivated(const QModelIndex& completion);
     void blinkEvent();
     
 protected:
