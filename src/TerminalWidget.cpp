@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QRegularExpression>
 #include <QStringListModel>
+#include <QScrollBar>
 #include <QStandardItemModel>
 #include <QAbstractItemModel>
 #include <QAbstractItemView>
@@ -79,8 +80,7 @@ void TerminalWidget::blinkEvent()
 }
 
 void TerminalWidget::updateCompletion() {
-    QString prompt {m_buffer.getCompletion()};
-    qDebug() << m_buffer.getCompletion();
+    QString prompt {m_buffer.getCompletion(m_buffer.getPrompt())};
     if (prompt.isEmpty()) {
         m_completer->popup()->hide();
         return;
@@ -88,8 +88,10 @@ void TerminalWidget::updateCompletion() {
     m_completer->setCompletionPrefix(prompt);
     m_completer->setCurrentRow(0);
     QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()) };
-    rect.setSize(QSize(200, 30));
+    qDebug() << rect.topLeft();
+    rect.setWidth(m_completer->popup()->sizeHintForColumn(0) + m_completer->popup()->verticalScrollBar()->sizeHint().width());
     m_completer->complete(rect);
+    m_completer->popup()->move(rect.topLeft());
 }
 
 void TerminalWidget::paintBackground(QPainter& painter, QRect& region)

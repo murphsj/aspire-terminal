@@ -75,9 +75,7 @@ void readFromManpage(QString path, ShellCompletionItem* parent)
 
         commandItem->appendChild(std::make_unique<ShellCompletionItem>(argumentName, argumentDescription, commandItem.get()));
     }
-
-    commandItem->appendChild(std::make_unique<ShellCompletionItem>("TEST", "test argument", commandItem.get()));
-
+    
     parent->appendChild(std::move(commandItem));
 }
 

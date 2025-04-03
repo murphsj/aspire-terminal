@@ -73,22 +73,21 @@ QString TextBuffer::getPrompt()
     return str;
 }
 
-QString TextBuffer::getCompletion()
+QString TextBuffer::getCompletion(QString prompt)
 {
+    // Hacky solution for the proof of concept: making a
     static QRegularExpression whitespace {"\\s+"};
-    QStringList promptWords { getPrompt().split(whitespace) };
-
-    qDebug() << "prompt:" + getPrompt();
-
+    QStringList promptWords { prompt.split(whitespace, Qt::SkipEmptyParts) };
+    qDebug() << promptWords;
     if (promptWords.length() == 0) return QStringLiteral("");
+    QString currentWord = { promptWords.at(promptWords.length() - 1) };
+    QString command {promptWords.at(0)};
     if (promptWords.length() == 1) {
-        if (promptWords.at(promptWords.length() - 1) == QStringLiteral(" ")) {
-            return promptWords.at(0) + QStringLiteral(".");
-        } else {
-            return promptWords.at(0);
-        }
+        if (prompt.endsWith(' ')) return command + QStringLiteral(".");
+        else return command;
     }
-    return promptWords.at(0) + QStringLiteral(".") + promptWords.at(promptWords.length() - 1);
+    
+    return command + QStringLiteral(".") + currentWord;
 
 }
 

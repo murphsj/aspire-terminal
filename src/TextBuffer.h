@@ -42,8 +42,8 @@ public:
     std::size_t getCursorY();
     /** Attempts to find the user-entered string at the cursor in the Bash shell. */
     QString getPrompt();
-    /** Returns the string to be used for shell completion */
-    QString getCompletion();
+    /** Turn prompt text into a string to be used for QCompleter */
+    QString getCompletion(QString prompt);
     /** Sets the column and line of the cursor. */
     void setCursorPosition(std::size_t x, std::size_t y);
     /** Parses an LF character; moves the cursor down one line, scrolling if neccecary. */
