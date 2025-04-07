@@ -1,5 +1,6 @@
 #include "ShellItemView.h"
 #include "ShellCompletionItem.h"
+#include "ShellCompletionModel.h"
 
 #include <QListView>
 #include <QItemSelectionModel>
@@ -14,11 +15,12 @@ ShellItemView::ShellItemView():
 void ShellItemView::init()
 {
     setMouseTracking(true);
-    m_infoPopup = new QWidget();
-    m_infoPopup->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    m_infoLabel = new QLabel(m_infoPopup);
+    m_infoLabel = new QLabel();
+    m_infoLabel->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    m_infoLabel->show();
 
-    connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &ShellItemView::onSelectionChange);
+    //setModel(new ShellCompletionModel());
+    //connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &ShellItemView::onSelectionChange);
 }
 
 void ShellItemView::mouseMoveEvent(QMouseEvent* event)
@@ -26,18 +28,15 @@ void ShellItemView::mouseMoveEvent(QMouseEvent* event)
     QModelIndex index { indexAt(viewport()->mapFrom(this, event->pos())) };
     selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
     QListView::mouseMoveEvent(event);
-}
-
-void ShellItemView::onSelectionChange(QItemSelection& selected, QItemSelection& deselected)
-{
-    // There's only ever going to be 1 item selected, so get it
-    showInfoPopup(&selected.first().indexes().first());
+    showInfoPopup(&index);
 }
 
 void ShellItemView::showInfoPopup(QModelIndex* index)
 {
-    if (ShellCompletionItem* item = static_cast<ShellCompletionItem*>(index->internalPointer())) {
-        m_infoLabel->setText(item->description());
-        m_infoPopup->show();
+    QModelIndex descriptionIndex { model()->index(index->row(), 1, index->parent()) };
+    QString desc { model()->data(descriptionIndex).toString() };
+    if (!desc.isEmpty()) {
+        m_infoLabel->setText(desc);
+        m_infoLabel->adjustSize();
     }
 }

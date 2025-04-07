@@ -14,7 +14,7 @@ public:
     explicit ShellItemView();
 
 private slots:
-    void onSelectionChange(QItemSelection& selected, QItemSelection& deselected);
+    void onSelectionChange(const QItemSelection& selected, const QItemSelection& deselected);
 
 private:
     void init();
