@@ -1,26 +1,37 @@
 #include "ShellCompleter.h"
+#include "ShellItemView.h"
 
 #include <QObject>
+#include <QWidget>
 #include <QStringView>
 #include <QRegularExpression>
+#include <QEvent>
+#include <QAbstractItemView>
+#include <QListView>
+#include <QHelpEvent>
+#include <QRect>
+#include <QItemSelectionModel>
 
 ShellCompleter::ShellCompleter(QObject* parent)
     : QCompleter(parent)
 {
-
+    init();
 };
 
 ShellCompleter::ShellCompleter(ShellCompletionModel* model, QObject* parent)
     : QCompleter(model, parent)
 {
-
+    init();
 };
+
+void ShellCompleter::init()
+{
+    setPopup(new ShellItemView());
+}
 
 
 QStringList ShellCompleter::splitPath(const QString& path) const
 {
-    
-    // TODO: include command name if present so arguments can be shown
     return path.split(QLatin1String("."));
 };
 
@@ -30,8 +41,6 @@ QString ShellCompleter::pathFromIndex(const QModelIndex& index) const
     for (QModelIndex i = index; i.isValid(); i = i.parent()) {
         data.prepend(model()->data(i, Qt::DisplayRole).toString());
     }
-
-    qDebug() << "pathFromIndex(): " << data.join(QLatin1String("/"));
 
     return data.join(QLatin1String("."));
 };

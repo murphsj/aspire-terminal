@@ -34,11 +34,10 @@ TerminalWidget::TerminalWidget(QWidget* parent, TerminalCharacter* _c)
 
     m_completer = new ShellCompleter(m_completionModel, this);
     m_completer->setWidget(this);
-    
     m_completer->setCompletionColumn(0);
     m_completer->setCompletionRole(Qt::DisplayRole);
     m_completer->setCaseSensitivity(Qt::CaseSensitivity::CaseInsensitive);
-    //m_completer->setCompletionMode(QCompleter::PopupCompletion);
+    m_completer->popup()->setFont(m_font);
 
     connect(&m_blinkTimer, &QTimer::timeout, this, &TerminalWidget::blinkEvent);
     m_blinkTimer.start(TerminalWidget::BlinkInterval);

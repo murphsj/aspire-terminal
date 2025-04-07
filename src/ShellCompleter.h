@@ -7,6 +7,8 @@
 #include <QString>
 #include <QStringList>
 #include <QModelIndex>
+#include <QWidget>
+#include <QLabel>
 #include <qtmetamacros.h>
 
 /**
@@ -23,7 +25,9 @@ public:
 protected:
     QStringList splitPath(const QString& path) const override;
     QString pathFromIndex(const QModelIndex& index) const override;
-    //QString pathFromIndex(const QModelIndex &index) const override;
+
+private:
+    void init();
 };
 
 #endif
