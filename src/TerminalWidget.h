@@ -22,7 +22,7 @@ class TerminalWidget: public QWidget
 
 public:
     constexpr static std::chrono::milliseconds BlinkInterval { 500 };
-    TerminalWidget(QWidget* parent = nullptr, TerminalCharacter* characterData = nullptr);
+    TerminalWidget(QWidget* parent = nullptr, std::size_t width=50, std::size_t height=400);
 
     void updateCompletion();
 
@@ -36,6 +36,7 @@ public slots:
 protected:
     void paintEvent(QPaintEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    QSize sizeHint() const override;
 
 private:
     void paintBackground(QPainter& painter, QRect& region);
@@ -52,7 +53,7 @@ private:
     void applyEscapeSequence(EscapeSequence esc);
     void applyControlSequence(EscapeSequence cs);
     ShellCompletionModel* m_completionModel;
-    QCompleter* m_completer;
+    ShellCompleter* m_completer;
     QTimer m_blinkTimer;
     bool m_blinkOn;
     QFont m_font;
@@ -60,6 +61,8 @@ private:
     QPen m_pen;
     TextBuffer m_buffer;
     Pty m_pty;
+    std::size_t m_width;
+    std::size_t m_height;
 };
 
 #endif

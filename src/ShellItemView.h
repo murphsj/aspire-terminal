@@ -16,9 +16,13 @@ public:
 private slots:
     void onSelectionChange(const QItemSelection& selected, const QItemSelection& deselected);
 
+protected:
+    void hideEvent(QHideEvent*) override;
+    void showEvent(QShowEvent*) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+
 private:
     void init();
-    void mouseMoveEvent(QMouseEvent* event);
     void showInfoPopup(QModelIndex* index);
 
     QWidget* m_infoPopup;

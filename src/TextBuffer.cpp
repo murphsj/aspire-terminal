@@ -89,17 +89,14 @@ QString TextBuffer::getPrompt()
 
 QString TextBuffer::getCompletion(QString prompt)
 {
-    // Hacky solution for the proof of concept: making a
+    // Hacky solution for the proof of concept: makes a file directory-like tree out of prompt string
     static QRegularExpression whitespace {"\\s+"};
     QStringList promptWords { prompt.split(whitespace, Qt::SkipEmptyParts) };
-    qDebug() << promptWords;
     if (promptWords.length() == 0) return QStringLiteral("");
     QString currentWord = { promptWords.at(promptWords.length() - 1) };
     QString command {promptWords.at(0)};
-    if (promptWords.length() == 1) {
-        if (prompt.endsWith(' ')) return command + QStringLiteral(".");
-        else return command;
-    }
+    if (prompt.endsWith(' ')) return command + QStringLiteral(".");
+    if (promptWords.length() == 1) return command;
     
     return command + QStringLiteral(".") + currentWord;
 

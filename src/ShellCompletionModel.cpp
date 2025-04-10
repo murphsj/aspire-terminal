@@ -48,6 +48,8 @@ void trimGroff(QString& text) {
     text.replace(groffEscapes, "");
     // For some reason dashes are escaped in roff
     text.replace("\\-", "-");
+    text.replace("\\[", "]");
+    text.replace("\\]", "]");
 }
 
 void readFromManpage(QString path, ShellCompletionItem* parent)
@@ -68,12 +70,14 @@ void readFromManpage(QString path, ShellCompletionItem* parent)
     QRegularExpressionMatchIterator argMatches = getArgumentInfo.globalMatch(page);
 
     for (QRegularExpressionMatch argumentInfo : argMatches) {
-        QString argumentName {argumentInfo.captured(1)};
+        QString names {argumentInfo.captured(1)};
         QString argumentDescription {argumentInfo.captured(2)};
-        trimGroff(argumentName);
+        trimGroff(names);
         trimGroff(argumentDescription);
 
-        commandItem->appendChild(std::make_unique<ShellCompletionItem>(argumentName, argumentDescription, commandItem.get()));
+        for (QString argumentName : names.split(", ")) {
+            commandItem->appendChild(std::make_unique<ShellCompletionItem>(argumentName, argumentDescription, commandItem.get()));
+        }
     }
     
     parent->appendChild(std::move(commandItem));
@@ -84,7 +88,7 @@ void ShellCompletionModel::setupModelData(QStringList paths, ShellCompletionItem
     // TODO: use given paths
     readFromManpage(QStringLiteral("/usr/share/man/man1/cat.1.gz"), parent);
     readFromManpage(QStringLiteral("/usr/share/man/man1/ls.1.gz"), parent);
-    readFromManpage(QStringLiteral("/usr/share/man/man1/whatis.1.gz"), parent);
+    readFromManpage(QStringLiteral("/usr/share/man/man1/echo.1.gz"), parent);
 }
 
 ShellCompletionModel::ShellCompletionModel(QObject* parent)

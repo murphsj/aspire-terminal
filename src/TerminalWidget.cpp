@@ -16,14 +16,16 @@
 #include <qnamespace.h>
 #include <qwidget.h>
 
-TerminalWidget::TerminalWidget(QWidget* parent, TerminalCharacter* _c)
+TerminalWidget::TerminalWidget(QWidget* parent, std::size_t width, std::size_t height)
     : QWidget(parent)
     , m_font("Monospace")
     , m_fontMetrics(m_font)
-    , m_buffer(50, 200)
+    , m_buffer(width, height)
     , m_pen()
     , m_blinkOn(false)
     , m_blinkTimer(this)
+    , m_width(width)
+    , m_height(height)
 {
     // Style hint should result in a monospace font being found even if Monospace isn't available
     // (as is the case on Windows)
@@ -43,7 +45,7 @@ TerminalWidget::TerminalWidget(QWidget* parent, TerminalCharacter* _c)
     m_blinkTimer.start(TerminalWidget::BlinkInterval);
 
     connect(&m_pty, &Pty::recieved, this, &TerminalWidget::recievedFdData);
-    m_pty.start(50, 200);
+    m_pty.start(width, height);
 
     connect(m_completer, QOverload<const QModelIndex&>::of(&QCompleter::activated), this, &TerminalWidget::completionActivated);
 }
@@ -92,7 +94,6 @@ void TerminalWidget::updateCompletion()
     QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()) };
     rect.setWidth(m_completer->popup()->sizeHintForColumn(0) + m_completer->popup()->verticalScrollBar()->sizeHint().width());
     m_completer->complete(rect);
-    m_completer->popup()->move(rect.topLeft());
 }
 
 void TerminalWidget::completionActivated(const QModelIndex& completion)
@@ -170,6 +171,13 @@ void TerminalWidget::recievedFdData(std::string_view output)
     update();
 }
 
+QSize TerminalWidget::sizeHint() const
+{
+    int charWidth { m_fontMetrics.averageCharWidth() };
+    int charHeight { m_fontMetrics.height() };
+    return QSize(m_width * charWidth, m_height * charHeight);
+}
+
 ssize_t TerminalWidget::parse(std::string_view output, ssize_t index)
 {
     const char& ch = output.at(index);
@@ -186,6 +194,9 @@ ssize_t TerminalWidget::parse(std::string_view output, ssize_t index)
         return ++index;
     } else if (ch == TerminalCharacter::DEL) {
         m_buffer.write(TerminalCharacter {});
+        return ++index;
+    } else if (ch == TerminalCharacter::BELL) {
+        // Unimplemented for now
         return ++index;
     } else {
         return parseCharacter(output, index);

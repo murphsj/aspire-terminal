@@ -1,10 +1,10 @@
 #include "ShellItemView.h"
-#include "ShellCompletionItem.h"
-#include "ShellCompletionModel.h"
 
 #include <QListView>
 #include <QItemSelectionModel>
-#include <qobject.h>
+#include <QScrollBar>
+#include <qnamespace.h>
+#include <QObject>
 
 ShellItemView::ShellItemView():
     QListView()
@@ -15,8 +15,13 @@ ShellItemView::ShellItemView():
 void ShellItemView::init()
 {
     setMouseTracking(true);
-    m_infoLabel = new QLabel();
-    m_infoLabel->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    m_infoLabel = new QLabel(this);
+    m_infoLabel->setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    m_infoLabel->setAttribute(Qt::WA_ShowWithoutActivating);
+    m_infoLabel->setFocusPolicy(Qt::NoFocus);
+    setAttribute(Qt::WA_ShowWithoutActivating);
+    setFocusPolicy(Qt::NoFocus);
+    m_infoLabel->raise();
     m_infoLabel->show();
 
     //setModel(new ShellCompletionModel());
@@ -36,7 +41,22 @@ void ShellItemView::showInfoPopup(QModelIndex* index)
     QModelIndex descriptionIndex { model()->index(index->row(), 1, index->parent()) };
     QString desc { model()->data(descriptionIndex).toString() };
     if (!desc.isEmpty()) {
+        QPoint itemLocation { mapToGlobal(visualRect(*index).topLeft()) };
+        m_infoLabel->move(itemLocation.x() + size().width(), itemLocation.y());
         m_infoLabel->setText(desc);
         m_infoLabel->adjustSize();
+        m_infoLabel->show();
     }
+}
+
+void ShellItemView::hideEvent(QHideEvent* event)
+{
+    m_infoLabel->hide();
+    QListView::hideEvent(event);
+}
+
+void ShellItemView::showEvent(QShowEvent* event)
+{
+    m_infoLabel->show();
+    QListView::showEvent(event);
 }

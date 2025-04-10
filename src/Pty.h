@@ -34,8 +34,6 @@ public:
     /* Sends the given character(s) into the input of the Pty. */
     int send(const char* sequence, std::size_t length);
 
-    std::string_view prompt();
-
 signals:
     /* Sent when the terminal application gives output. */
     void recieved(std::string_view output);
