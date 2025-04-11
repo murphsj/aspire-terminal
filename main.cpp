@@ -3,6 +3,8 @@
 #include <QFile>
 #include <QStandardItem>
 #include <QScrollArea>
+#include <QPalette>
+#include <qpalette.h>
 
 #include "src/TerminalWidget.h"
 
@@ -13,8 +15,13 @@ int main(int argc, char **argv)
 
     QApplication app (argc, argv);
 
+
+
     QScrollArea* scrolling = new QScrollArea();
-    TerminalWidget* widget = new TerminalWidget(scrolling);
+    QPalette p { scrolling->palette() };
+    p.setColor(QPalette::Window, Qt::black);
+    scrolling->setPalette(p);
+    TerminalWidget* widget = new TerminalWidget(scrolling, 50, 50);
     scrolling->setWidget(widget);
     scrolling->show();
 

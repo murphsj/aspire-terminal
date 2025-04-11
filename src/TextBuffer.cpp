@@ -31,13 +31,13 @@ TextBuffer::TextBuffer(std::size_t columns, std::size_t lines)
 void TextBuffer::setCursorX(std::size_t pos)
 {
     pos -= 1;
-    m_cursorX = qMax(std::size_t {0}, qMin(pos, m_columns));
+    m_cursorX = qMax(std::size_t {0}, qMin(pos, m_columns-1));
 }
 
 void TextBuffer::setCursorY(std::size_t pos)
 {
     pos -= 1;
-    m_cursorY = qMax(std::size_t {0}, qMin(pos, m_lines));
+    m_cursorY = qMax(std::size_t {0}, qMin(pos, m_lines-1));
 }
 
 std::size_t TextBuffer::getCursorX()
@@ -76,11 +76,10 @@ QString TextBuffer::getPrompt()
             TerminalCharacter c {line.at(x)};
 
             if (c.character == promptEnd) {
-                break;
+                return str;
             }
 
             str.insert(0, c.character);
-            
         }
     }
 
@@ -109,6 +108,13 @@ void TextBuffer::setCursorPosition(std::size_t x, std::size_t y)
 
 void TextBuffer::lineFeed()
 {
+    if (m_cursorY == m_lines - 2) {
+        QVector<TerminalCharacter> tempLine(m_columns);
+        for (int i = m_lines - 1; i >= 0; i++) {
+            tempLine = std::exchange(m_characterData[i], tempLine);
+        }
+        m_cursorY--;
+    }
     setCursorY(m_cursorY + 2);
     qDebug() << "LF sent";
 }
