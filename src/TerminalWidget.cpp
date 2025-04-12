@@ -84,16 +84,20 @@ void TerminalWidget::blinkEvent()
 
 void TerminalWidget::updateCompletion()
 {
+    QAbstractItemView* popup { m_completer->popup() };
     QString prompt {m_buffer.getCompletion(m_buffer.getPrompt())};
     if (prompt.isEmpty()) {
-        m_completer->popup()->hide();
+        popup->hide();
         return;
     }
     m_completer->setCompletionPrefix(prompt);
     m_completer->setCurrentRow(0);
     QRect rect { getCharRect(m_buffer.getCursorX(), m_buffer.getCursorY()) };
-    rect.setWidth(m_completer->popup()->sizeHintForColumn(0) + m_completer->popup()->verticalScrollBar()->sizeHint().width());
+    rect.setWidth(popup->sizeHintForColumn(0) + popup->verticalScrollBar()->sizeHint().width());
     m_completer->complete(rect);
+
+    QModelIndex firstItem { popup->model()->index(0, 0, popup->rootIndex()) };
+    popup->selectionModel()->select(firstItem, QItemSelectionModel::SelectionFlag::ClearAndSelect);
 }
 
 void TerminalWidget::completionActivated(const QModelIndex& completion)

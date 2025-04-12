@@ -15,13 +15,11 @@ int main(int argc, char **argv)
 
     QApplication app (argc, argv);
 
-
-
     QScrollArea* scrolling = new QScrollArea();
     QPalette p { scrolling->palette() };
     p.setColor(QPalette::Window, Qt::black);
     scrolling->setPalette(p);
-    TerminalWidget* widget = new TerminalWidget(scrolling, 50, 50);
+    TerminalWidget* widget = new TerminalWidget(scrolling, 50, 400);
     scrolling->setWidget(widget);
     scrolling->show();
 

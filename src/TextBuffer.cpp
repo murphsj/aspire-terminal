@@ -14,7 +14,7 @@ TextBuffer::TextBuffer(): TextBuffer(1, 1)
 
 TextBuffer::~TextBuffer()
 {
-    delete[] m_characterData;
+    m_characterData.clear();
 }
 
 TextBuffer::TextBuffer(std::size_t columns, std::size_t lines)
@@ -22,7 +22,7 @@ TextBuffer::TextBuffer(std::size_t columns, std::size_t lines)
     ,m_lines(lines)
     ,m_writeMode()
 {
-    m_characterData = new QVector<TerminalCharacter>[lines];
+    m_characterData = QVector<QVector<TerminalCharacter>>(lines);
     for (int i {0}; i < m_lines; i++) {
         m_characterData[i] = QVector<TerminalCharacter>(columns);
     }
@@ -106,23 +106,23 @@ void TextBuffer::setCursorPosition(std::size_t x, std::size_t y)
     setCursorX(x); setCursorY(y);
 }
 
+void TextBuffer::scrollDown() {
+    m_characterData.append(QVector<TerminalCharacter>(m_columns));
+    m_characterData.remove(0);
+}
+
 void TextBuffer::lineFeed()
 {
     if (m_cursorY == m_lines - 2) {
-        QVector<TerminalCharacter> tempLine(m_columns);
-        for (int i = m_lines - 1; i >= 0; i++) {
-            tempLine = std::exchange(m_characterData[i], tempLine);
-        }
+        scrollDown();
         m_cursorY--;
     }
     setCursorY(m_cursorY + 2);
-    qDebug() << "LF sent";
 }
 
 void TextBuffer::carriageReturn()
 {
     setCursorX(1);
-    qDebug() << "CR sent";
 }
 
 void TextBuffer::cursorDown(std::size_t lineCount)
@@ -183,8 +183,6 @@ void TextBuffer::fillInRange(TerminalCharacter c, std::size_t startX, std::size_
 {
     std::size_t startLoc {(startY * m_columns) + startX};
     std::size_t endLoc {(endY * m_columns) + endX};
-    qDebug() << startX << endX << startY << endY;
-    qDebug() << m_cursorX;
     assert(endLoc >= startLoc);
 
     for (int y = startY; y <= endY; ++y) {
@@ -393,7 +391,6 @@ void TextBuffer::applyControlSequence(EscapeSequence cs)
     case 'H':
     case 'f':
         // CUP, HVP Set Cursor Position
-        qDebug() << "Setting position:" << cs.getParameter(0, 1) << cs.getParameter(1, 1);
         setCursorPosition(cs.getParameter(1, 1), cs.getParameter(0, 1));
         break;
     case 'd':

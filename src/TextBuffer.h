@@ -49,6 +49,8 @@ public:
     QString getCompletion(QString prompt);
     /** Sets the column and line of the cursor. */
     void setCursorPosition(std::size_t x, std::size_t y);
+    /** Moves the topmost line into scrollback and adds a blank line at the bottom. */
+    void scrollDown();
     /** Parses an LF character; moves the cursor down one line, scrolling if neccecary. */
     void lineFeed();
     /** Parses a CR character; moves the cursor to the start of the current line. */
@@ -98,8 +100,8 @@ public:
     std::size_t getLines() { return m_lines; }
 
 
-    QVector<TerminalCharacter>* begin() { return m_characterData; }
-    QVector<TerminalCharacter>* end() { return m_characterData + m_lines; }
+    auto begin() { return m_characterData.begin(); }
+    auto end() { return m_characterData.end(); }
 private:
     /** Sets all characters from the start to the end position to the given character. If the given character is blank, erases all characters in range. */
     void fillInRange(TerminalCharacter c, std::size_t startX, std::size_t startY, std::size_t endX, std::size_t endY);
@@ -116,7 +118,7 @@ private:
     /** Bit field for options affecting how text is inserted into the buffer. */
     WriteModes m_writeMode {};
     /** Array which stores the text in each line. */
-    QVector<TerminalCharacter>* m_characterData;
+    QVector<QVector<TerminalCharacter>> m_characterData;
     /** Foreground color to apply to text inserted into the buffer. */
     QColor m_fgColor {TerminalColor::DefaultForeground};
     /** Background color to apply to text inserted into the buffer. */

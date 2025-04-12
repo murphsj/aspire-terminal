@@ -56,8 +56,6 @@ void Pty::setSize(std::size_t width, std::size_t height)
         .ws_col = static_cast<unsigned short>(width),
     };
 
-    qDebug() << size.ws_col;
-
     int res {ioctl(m_fileDescriptor, TIOCSWINSZ, &size)};
     if (res == -1) {
         qFatal("ioctl(TIOCWINSZ) failed");
