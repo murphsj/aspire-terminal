@@ -23,5 +23,7 @@ int main(int argc, char **argv)
     scrolling->setWidget(widget);
     scrolling->show();
 
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, widget, &TerminalWidget::writeResults);
+
     return app.exec();
 }

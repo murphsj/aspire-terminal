@@ -13,6 +13,7 @@
 #include <QAbstractItemModel>
 #include <QAbstractItemView>
 #include <cstddef>
+#include <qimage.h>
 #include <qnamespace.h>
 #include <qwidget.h>
 
@@ -26,6 +27,7 @@ TerminalWidget::TerminalWidget(QWidget* parent, std::size_t width, std::size_t h
     , m_blinkTimer(this)
     , m_width(width)
     , m_height(height)
+    , m_completionsUsed(0)
 {
     // Style hint should result in a monospace font being found even if Monospace isn't available
     // (as is the case on Windows)
@@ -56,6 +58,15 @@ QRect TerminalWidget::getCharRect(std::size_t charX, std::size_t charY)
     int charHeight { m_fontMetrics.height() };
 
     return QRect(charX * charWidth, charY * charHeight, charWidth, charHeight);
+}
+
+void TerminalWidget::writeResults()
+{
+    QFile file ("aspire_terminal_output.txt");
+    if (file.open(QIODevice::ReadWrite)) {
+        QTextStream stream (&file);
+        stream << "Completions used: " << m_completionsUsed << Qt::endl;
+    }
 }
 
 void TerminalWidget::paintEvent(QPaintEvent* event)
@@ -111,6 +122,8 @@ void TerminalWidget::completionActivated(const QModelIndex& completion)
         QString lastWord { promptWords.at(promptWords.length()-1) };
         for (int i = 0; i < lastWord.length(); i++) m_pty.send("\b", 1);
     }
+
+    m_completionsUsed++;
     
     m_pty.send(name.toUtf8().constData(), name.length());
 }

@@ -24,7 +24,7 @@ public:
     Pty();
     ~Pty();
     /* Creates the pseudoterminal and starts the given process. */
-    void start(std::size_t width, std::size_t height, const char* processName=std::getenv("SHELL"));
+    void start(std::size_t width, std::size_t height, const char* processName="/bin/bash");
     /* Kills the pseudoterminal process and disables the Pty. */
     void stop();
     /* Returns true if the Pty is running and false if it is not. */

@@ -102,6 +102,7 @@ bool Pty::forkpt(const char* shellName)
 
 void Pty::start(std::size_t width, std::size_t height, const char* shellName)
 {
+    setenv("TERM", "xterm-256color", true);
     openpt();
     if (!forkpt(shellName)) return; 
     setSize(width, height);

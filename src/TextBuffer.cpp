@@ -69,7 +69,7 @@ QString TextBuffer::getPrompt()
     constexpr static QChar promptEnd {'$'};
     QString str;
 
-    for (int y = m_cursorY; y > 0; --y) {
+    for (int y = m_cursorY; y >= 0; --y) {
         QVector<TerminalCharacter>& line = m_characterData[y];
 
         for (int x = m_cursorX-1; x > 0; --x) {
@@ -82,7 +82,7 @@ QString TextBuffer::getPrompt()
             str.insert(0, c.character);
         }
     }
-
+    
     return str;
 }
 

@@ -89,6 +89,8 @@ void ShellCompletionModel::setupModelData(QStringList paths, ShellCompletionItem
     readFromManpage(QStringLiteral("/usr/share/man/man1/cat.1.gz"), parent);
     readFromManpage(QStringLiteral("/usr/share/man/man1/ls.1.gz"), parent);
     readFromManpage(QStringLiteral("/usr/share/man/man1/echo.1.gz"), parent);
+    readFromManpage(QStringLiteral("/usr/share/man/man1/uname.1.gz"), parent);
+    readFromManpage(QStringLiteral("/usr/share/man/man1/rm.1.gz"), parent);
 }
 
 ShellCompletionModel::ShellCompletionModel(QObject* parent)

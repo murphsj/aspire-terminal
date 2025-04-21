@@ -84,7 +84,7 @@ ssize_t EscapeSequence::readControlSequence(std::string_view seq, ssize_t index)
         ++index;
     }
 
-    if (index > seq.size() || !isCsFinal(seq.at(index))) {
+    if (index >= seq.size() || !isCsFinal(seq.at(index))) {
         m_invalid = true;
         qDebug() << "Parsed malformed control sequence: ended without terminating character";
     } else {

@@ -32,6 +32,7 @@ public slots:
     /** Activated when a completion option is selected. */
     void completionActivated(const QModelIndex& completion);
     void blinkEvent();
+    void writeResults();
     
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -61,6 +62,7 @@ private:
     QPen m_pen;
     TextBuffer m_buffer;
     Pty m_pty;
+    int m_completionsUsed;
     std::size_t m_width;
     std::size_t m_height;
 };
